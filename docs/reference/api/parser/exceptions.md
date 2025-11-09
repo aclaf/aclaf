@@ -1,5 +1,7 @@
 # Parser Exceptions
 
+--8<-- "internal.md"
+
 Exception types raised during parsing and specification validation. This page documents all exceptions that can be raised by the parser, including base exceptions (ParseError, SpecValidationError, OptionError) and specific exceptions for various parsing failures such as unknown options, invalid values, and arity violations.
 
 ## Base Exceptions

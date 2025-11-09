@@ -1,5 +1,7 @@
 # Parser Specifications API
 
+--8<-- "internal.md"
+
 Specification types for defining command structure and behavior. This page documents the specification classes (CommandSpec, OptionSpec, PositionalSpec) used to define commands, options, and positional arguments, along with supporting types like Arity and AccumulationMode that control parsing behavior.
 
 ::: aclaf.parser
