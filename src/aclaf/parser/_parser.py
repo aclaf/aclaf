@@ -1032,29 +1032,20 @@ class Parser(BaseParser):
                 # - Tuple from multi-value option (max>1 or unbounded):
                 #   wrap in outer tuple
                 arity = option_spec.arity or ZERO_OR_MORE_ARITY
-                if not isinstance(new.value, tuple):
-                    # Scalar value (flag, const_value, etc.): wrap in tuple
+                # For COLLECT mode first occurrence:
+                # - Scalar values: wrap in tuple
+                # - Multi-value tuples (max > 1): wrap in outer tuple for grouping
+                # - Single-value tuples (max = 1): keep as-is (already a tuple)
+                if not isinstance(new.value, tuple) or _is_multi_value_arity(arity):
+                    # Wrap scalar or multi-value tuple
                     # Type checker can't handle dynamic tuple construction
-                    # for COLLECT mode
-                    accumulated_option = ParsedOption(
-                        name=new.name,
-                        alias=new.alias,
-                        value=(new.value,),  # pyright: ignore[reportArgumentType]
-                    )
-                elif _is_multi_value_arity(arity):
-                    # Multi-value option (unbounded or max > 1):
-                    # wrap tuple in outer tuple
-                    # to preserve grouping across multiple occurrences
-                    # Type checker can't handle dynamic tuple construction
-                    # for COLLECT mode
                     accumulated_option = ParsedOption(
                         name=new.name,
                         alias=new.alias,
                         value=(new.value,),  # pyright: ignore[reportArgumentType]
                     )
                 else:
-                    # Single-value option (max=1) with COLLECT:
-                    # the value is already a tuple
+                    # Single-value option (max=1): value is already a tuple
                     accumulated_option = new
             case (AccumulationMode.COLLECT, ParsedOption()):
                 # Subsequent occurrences: append to the collection
