@@ -366,3 +366,4 @@ site/
 # Hack to find libcairo
 *.dylib
 reviews/
+specs/
