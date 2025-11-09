@@ -1087,7 +1087,7 @@ class Parser(BaseParser):
 
     def _in_value_consuming_context(
         self,
-        positionals_started: bool,  # noqa: FBT001 - Internal helper, bool arg is clear
+        positionals_started: bool,  # noqa: ARG002, FBT001 - Currently unused, kept for future use
         current_spec: "CommandSpec",
     ) -> bool:
         """Check if parser is in a context where values are expected.
