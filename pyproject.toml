@@ -23,12 +23,13 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Topic :: Software Development :: Libraries :: Python Modules",
   "Topic :: Terminals",
   "Topic :: Utilities",
   "Typing :: Typed",
 ]
-dependencies = []
+dependencies = ["anyio>=4.11.0"]
 
 [dependency-groups]
 dev = [
@@ -36,13 +37,16 @@ dev = [
   "codespell>=2.4.1",
   "commitizen>=4.9.1",
   "djlint>=1.36.4",
+  "hypothesis>=6.147.0",
   "mkdocs-git-authors-plugin>=0.10.0",
   "mkdocs-git-revision-date-localized-plugin>=1.5.0",
   "mkdocs-glightbox>=0.5.2",
   "mkdocs-material>=9.6.23",
   "mkdocs-rss-plugin>=1.17.4",
+  "mkdocstrings[python]>=0.30.1",
   "prek>=0.2.12",
   "pytest-asyncio>=1.2.0",
+  "pytest-benchmark>=5.2.2",
   "pytest-cov>=7.0.0",
   "pytest-mock>=3.15.1",
   "pytest>=8.4.2",
@@ -54,7 +58,7 @@ dev = [
 include = ["src", "tests"]
 
 [tool.codespell]
-skip = "pnpm-lock.yaml,uv.lock"
+skip = "pnpm-lock.yaml,uv.lock,htmlcov,site"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
@@ -66,18 +70,24 @@ pre_bump_hooks = ["uv sync --all-packages --all-groups --all-extras"]
 
 [tool.pytest.ini_options]
 addopts = [
+  "--import-mode=importlib",
   "--tb",
   "short",
-  "--cov",
-  "src",
-  "--cov-report",
-  "term-missing",
-  "--cov-branch",
+  "--ignore=tests/benchmarks",
 ]
+pythonpath = ["src"]
 asyncio_mode = "auto"
 filterwarnings = ["error"]
 testpaths = ["tests"]
 xfail_strict = true
+
+[tool.hypothesis]
+# Save failing examples to local database for reproducibility
+database = ".hypothesis/examples"
+# Show more detailed output during test runs
+verbosity = "verbose"
+# Default number of examples to test per property
+max_examples = 100
 
 [tool.ruff]
 target-version = "py312"
@@ -153,16 +163,3 @@ ignore-variadic-names = true
 [tool.ruff.lint.per-file-ignores]
 "**/__main__.py" = ["D100"]
 "**/tests/**" = ["D", "PLR2004", "S101"]
-
-[tool.uv]
-package = false
-
-[tool.uv.sources]
-aclaf = { workspace = true }
-aclaf-contrib = { workspace = true }
-aclaf-core = { workspace = true }
-aclaf-dev = { workspace = true }
-aclaf-docs = { workspace = true }
-
-[tool.uv.workspace]
-members = ["packages/*"]

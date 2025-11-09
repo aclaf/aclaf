@@ -17,6 +17,22 @@ build: install
 test: install
   uv run --frozen pytest
 
+# Run performance benchmarks
+benchmark: install
+  uv run --frozen pytest tests/benchmarks/ --benchmark-only --benchmark-json=benchmark_results.json
+
+# Save benchmark baseline
+benchmark-save: install
+  uv run --frozen pytest tests/benchmarks/ --benchmark-only --benchmark-save=baseline
+
+# Compare benchmarks against latest saved run
+benchmark-compare: install
+  uv run --frozen pytest tests/benchmarks/ --benchmark-only --benchmark-compare
+
+# Compare benchmarks against baseline and fail if regression > 15%
+benchmark-compare-strict: install
+  uv run --frozen pytest tests/benchmarks/ --benchmark-only --benchmark-compare --benchmark-compare-fail=mean:15%
+
 # Format code
 format: install
   uv run --frozen codespell -w
