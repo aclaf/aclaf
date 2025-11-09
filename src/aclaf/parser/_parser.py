@@ -1,10 +1,15 @@
+import re
 from dataclasses import replace
 from types import MappingProxyType
 from typing import TYPE_CHECKING, final, override
 
 from ._base import BaseParser, ParsedOption, ParsedPositional, ParseResult
 from ._parameters import PositionalSpec
-from .constants import DEFAULT_FALSEY_VALUES, DEFAULT_TRUTHY_VALUES
+from .constants import (
+    DEFAULT_FALSEY_VALUES,
+    DEFAULT_NEGATIVE_NUMBER_PATTERN,
+    DEFAULT_TRUTHY_VALUES,
+)
 from .exceptions import (
     FlagWithValueError,
     InsufficientOptionValuesError,
@@ -102,16 +107,29 @@ class Parser(BaseParser):
                         options[parsed_option.name] = parsed_option
                         position += 1 + consumed
                 case (str() as opt, False, _) if opt.startswith("-") and opt != "-":
-                    # Short option(s)
+                    # Short option(s) or negative number
+                    # Check for negative number BEFORE processing as option
+                    if (
+                        self._allow_negative_numbers
+                        and self._is_negative_number(opt)
+                        and self._in_value_consuming_context(
+                            positionals_started, current_spec
+                        )
+                    ):
+                        # Treat as positional value (negative number)
+                        positionals += (arg,)
+                        position += 1
+                        positionals_started = True
                     # Treat as positional if:
                     # - strict mode is enabled and positionals have started, OR
                     # - positionals have started and no options are defined
-                    if (
+                    elif (
                         positionals_started and self._strict_options_before_positionals
                     ) or (positionals_started and not current_spec.options):
                         positionals += (arg,)
                         position += 1
                     else:
+                        # Process as short option(s)
                         parsed_options, consumed = self._parse_short_options(
                             opt[1:],
                             args[position + 1 :],
@@ -775,7 +793,7 @@ class Parser(BaseParser):
             name=option_spec.name, alias=option_name, value=parsed_value
         )
 
-    def _parse_option_values_from_args(
+    def _parse_option_values_from_args(  # noqa: PLR0912 - Complex value parsing logic
         self,
         option_spec: "OptionSpec",
         option_name: str,
@@ -811,7 +829,15 @@ class Parser(BaseParser):
 
             current_value = next_args[consumed]
             if current_value.startswith("-") and current_value != "-":
-                break
+                # If negative numbers enabled and matches pattern, consume as value
+                if self._allow_negative_numbers and self._is_negative_number(
+                    current_value
+                ):
+                    # Continue to consume as value
+                    pass
+                else:
+                    # Stop consuming (potential option)
+                    break
 
             if current_spec.resolve_subcommand(
                 current_value,
@@ -826,7 +852,14 @@ class Parser(BaseParser):
             # Count remaining non-option, non-subcommand args after this consumption
             remaining_after_consume = 0
             for arg in next_args[consumed + 1 :]:
-                if arg.startswith("-") and arg != "-":
+                # Check if this is an option (not a negative number or single dash)
+                if (
+                    arg.startswith("-")
+                    and arg != "-"
+                    and not (
+                        self._allow_negative_numbers and self._is_negative_number(arg)
+                    )
+                ):
                     break
                 if current_spec.resolve_subcommand(
                     arg,
@@ -1039,3 +1072,35 @@ class Parser(BaseParser):
             or (arity.min == 0 and arity.max is None)
             or (arity.min == 0 and arity.max is not None and arity.max > 0)
         )
+
+    def _is_negative_number(self, arg: str) -> bool:
+        """Check if argument matches negative number pattern.
+
+        Args:
+            arg: The argument to check.
+
+        Returns:
+            True if argument matches the negative number pattern.
+        """
+        pattern = self._negative_number_pattern or DEFAULT_NEGATIVE_NUMBER_PATTERN
+        return bool(re.match(pattern, arg))
+
+    def _in_value_consuming_context(
+        self,
+        positionals_started: bool,  # noqa: FBT001 - Internal helper, bool arg is clear
+        current_spec: "CommandSpec",
+    ) -> bool:
+        """Check if parser is in a context where values are expected.
+
+        This determines whether a negative-number-like argument should be
+        treated as a value rather than as an option.
+
+        Args:
+            positionals_started: Whether positional parsing has begun.
+            current_spec: The current command specification.
+
+        Returns:
+            True if in a context that expects values (positional arguments).
+        """
+        # Spec allows positionals (either already started or can start now)
+        return bool(current_spec.positionals)
