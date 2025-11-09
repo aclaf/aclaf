@@ -230,52 +230,6 @@ class OptionCannotBeSpecifiedMultipleTimesError(OptionError):
         self.args: tuple[str] = (message,)
 
 
-class OptionCannotBeCombinedError(OptionError):
-    """Exception raised when non-combinable option used in combined form.
-
-    This occurs when an option with allow_combined=False is used in a
-    short option cluster (e.g., -abc).
-
-    Attributes:
-        name: The option name as provided by the user, without prefix dashes
-            (e.g., 'f' for -f).
-        option_spec: The option specification for reference.
-
-    When Raised:
-        - Option has allow_combined=False (typically for options that consume values)
-        - User attempts to combine it with other short options
-        - The option appears in a short option cluster
-
-    Example:
-        >>> from aclaf.parser import CommandSpec, OptionSpec, Parser
-        >>> from aclaf.parser.types import EXACTLY_ONE_ARITY
-        >>> spec = CommandSpec(
-        ...     name="myapp",
-        ...     options=[
-        ...         OptionSpec("all", short="a", is_flag=True),
-        ...         OptionSpec(
-        ...             "file", short="f", arity=EXACTLY_ONE_ARITY, allow_combined=False
-        ...         ),
-        ...     ],
-        ... )
-        >>> parser = Parser(spec)
-        >>> try:
-        ...     parser.parse(["-af", "file.txt"])
-        ... except OptionCannotBeCombinedError as e:
-        ...     print(f"Use {e.name} separately")
-    """
-
-    def __init__(self, name: str, option_spec: "OptionSpec") -> None:
-        super().__init__(name, option_spec)
-        message_name = full_option_name(name)
-        canonical_name = full_option_name(option_spec.name)
-        message = (
-            f"Option '{message_name}' ({canonical_name}) cannot be "
-            "combined with other options."
-        )
-        self.args: tuple[str] = (message,)
-
-
 class OptionDoesNotAcceptValueError(OptionError):
     """Exception raised when option doesn't accept value but one is provided.
 
@@ -362,45 +316,6 @@ class FlagWithValueError(OptionError):
         self.args: tuple[str] = (message,)
 
 
-class MissingOptionValueError(OptionError):
-    """Exception raised when an option that requires a value is missing one.
-
-    Attributes:
-        name: The option name as provided by the user, without prefix dashes
-            (e.g., 'o' for -o, 'output' for --output).
-        option_spec: The option specification for reference.
-
-    When Raised:
-        - Option has arity requiring at least one value
-        - Option appears at the end of arguments with no following value
-        - Next argument is another option (starts with -)
-        - Next argument is a recognized subcommand
-
-    Example:
-        >>> from aclaf.parser import CommandSpec, OptionSpec, Parser
-        >>> from aclaf.parser.types import EXACTLY_ONE_ARITY
-        >>> spec = CommandSpec(
-        ...     name="myapp",
-        ...     options=[OptionSpec("output", long="output", arity=EXACTLY_ONE_ARITY)],
-        ... )
-        >>> parser = Parser(spec)
-        >>> try:
-        ...     parser.parse(["--output"])  # Missing value
-        ... except MissingOptionValueError as e:
-        ...     print(f"Error: {e}")
-    """
-
-    def __init__(self, name: str, option_spec: "OptionSpec") -> None:
-        super().__init__(name, option_spec)
-        message_name = full_option_name(name)
-        canonical_name = full_option_name(option_spec.name)
-        message = (
-            f"Option '{message_name}' ({canonical_name}) requires a value "
-            "but none was provided."
-        )
-        self.args: tuple[str] = (message,)
-
-
 class InvalidFlagValueError(ParseError):
     """Exception raised when a flag option is provided with an invalid value.
 
@@ -455,55 +370,6 @@ class InvalidFlagValueError(ParseError):
         message = (
             f"Invalid value '{value}' for option '{message_name}' ({canonical_name}). "
             f"Expected one of: {', '.join(sorted(true_values | false_values))}."
-        )
-        super().__init__(message)
-
-
-class MultiValueOptionEqualsError(ParseError):
-    """Exception raised when multi-value option uses '=' syntax.
-
-    The equals syntax can only provide a single value, so it cannot satisfy
-    multi-value requirements.
-
-    Attributes:
-        name: The option name as provided by the user, without prefix dashes
-            (e.g., 'files' for --files).
-        option_spec: The option specification for reference.
-
-    When Raised:
-        - Option has arity with minimum > 1
-        - User attempts to use --option=value syntax
-        - The = syntax can only provide one value, not multiple
-
-    Example:
-        >>> from aclaf.parser import CommandSpec, OptionSpec, Parser
-        >>> from aclaf.parser.types import Arity
-        >>> spec = CommandSpec(
-        ...     name="myapp",
-        ...     options=[
-        ...         OptionSpec(
-        ...             "files", long="files", arity=Arity(min=2, max=5)
-        ...         )  # Requires at least 2
-        ...     ],
-        ... )
-        >>> parser = Parser(spec)
-        >>> try:
-        ...     parser.parse(["--files=file1.txt"])
-        ... except MultiValueOptionEqualsError as e:
-        ...     print(f"Error: {e}")
-        >>> # Correct usage:
-        >>> result = parser.parse(["--files", "file1.txt", "file2.txt"])
-    """
-
-    def __init__(self, name: str, option_spec: "OptionSpec") -> None:
-        self.name: str = name
-        self.option_spec: OptionSpec = option_spec
-
-        message_name = full_option_name(name)
-        canonical_name = full_option_name(option_spec.name)
-        message = (
-            f"Option '{message_name}' ({canonical_name}) accepts multiple values "
-            "and cannot be specified using '=' syntax."
         )
         super().__init__(message)
 
