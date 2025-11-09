@@ -163,7 +163,7 @@ class TestNegativeNumberInvariants:
         # Verify frozen behavior through normal attribute assignment
         # (direct assignment should fail on frozen dataclass)
         with pytest.raises((AttributeError, dataclasses.FrozenInstanceError)):
-            result.command = "modified"  # type: ignore[misc]
+            result.command = "modified"  # type: ignore[misc]  # pyright: ignore[reportAttributeAccessIssue]
 
     @given(negative_integers())
     def test_parse_is_deterministic(self, negative_int: str):

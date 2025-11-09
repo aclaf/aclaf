@@ -584,3 +584,64 @@ def test_benchmark_only_double_dash(benchmark):
 
     # Verify trailing args after double-dash
     assert result.extra_args == ("arg1", "arg2", "arg3")
+
+
+def test_benchmark_negative_numbers_as_positionals(benchmark):
+    """Benchmark negative number parsing as positional arguments."""
+    spec = CommandSpec(
+        "test",
+        positionals=[PositionalSpec("values", arity=ZERO_OR_MORE_ARITY)],
+    )
+    parser = Parser(spec, allow_negative_numbers=True)
+
+    result = benchmark(parser.parse, ["-1", "-3.14", "-2.5e10", "-0"])
+
+    # Verify negative numbers parsed correctly
+    assert result.positionals["values"].value == ("-1", "-3.14", "-2.5e10", "-0")
+
+
+def test_benchmark_negative_numbers_as_option_values(benchmark):
+    """Benchmark negative numbers consumed as option values."""
+    spec = CommandSpec(
+        "test",
+        options=[
+            OptionSpec("min", arity=Arity(1, 1)),
+            OptionSpec("max", arity=Arity(1, 1)),
+            OptionSpec("threshold", arity=Arity(1, 1)),
+        ],
+    )
+    parser = Parser(spec, allow_negative_numbers=True)
+
+    result = benchmark(
+        parser.parse, ["--min", "-100", "--max", "100", "--threshold", "-1.5e-10"]
+    )
+
+    # Verify negative option values
+    assert result.options["min"].value == "-100"
+    assert result.options["max"].value == "100"
+    assert result.options["threshold"].value == "-1.5e-10"
+
+
+def test_benchmark_mixed_positive_negative_numbers(benchmark):
+    """Benchmark parser with mix of positive and negative numbers."""
+    spec = CommandSpec(
+        "test",
+        positionals=[PositionalSpec("coords", arity=ZERO_OR_MORE_ARITY)],
+    )
+    parser = Parser(spec, allow_negative_numbers=True)
+
+    result = benchmark(
+        parser.parse, ["5", "-3", "10.5", "-7.2", "0", "-0", "100", "-999"]
+    )
+
+    # Verify mixed values
+    assert result.positionals["coords"].value == (
+        "5",
+        "-3",
+        "10.5",
+        "-7.2",
+        "0",
+        "-0",
+        "100",
+        "-999",
+    )
