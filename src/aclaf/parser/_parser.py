@@ -864,7 +864,8 @@ class Parser(BaseParser):
             AccumulationMode.LAST_WINS,
             AccumulationMode.ERROR,
         ):
-            parsed_value = values[0]
+            # For ZERO_OR_ONE_ARITY with no values, return empty tuple
+            parsed_value = values[0] if values else ()
         else:
             parsed_value = tuple(values)
 
