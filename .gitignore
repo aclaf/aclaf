@@ -51,6 +51,11 @@ coverage.xml
 .pytest_cache/
 cover/
 
+# pytest-benchmark
+.benchmarks/
+benchmark_results.json
+histogram*.svg
+
 # Translations
 *.mo
 *.pot
