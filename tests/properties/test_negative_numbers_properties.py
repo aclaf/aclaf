@@ -7,6 +7,7 @@ to discover edge cases and verify invariants across a wide range of inputs.
 import dataclasses
 import re
 from contextlib import suppress
+from typing import TYPE_CHECKING
 
 import pytest
 from hypothesis import given, strategies as st
@@ -16,16 +17,19 @@ from aclaf.parser.constants import DEFAULT_NEGATIVE_NUMBER_PATTERN
 from aclaf.parser.exceptions import UnknownOptionError
 from aclaf.parser.types import EXACTLY_ONE_ARITY, ZERO_OR_MORE_ARITY, Arity
 
+if TYPE_CHECKING:
+    from hypothesis.strategies import DrawFn
+
 
 @st.composite
-def negative_integers(draw):
+def negative_integers(draw: "DrawFn") -> str:
     """Strategy for negative integers."""
     value = draw(st.integers(min_value=-1_000_000, max_value=-1))
     return str(value)
 
 
 @st.composite
-def negative_floats(draw):
+def negative_floats(draw: "DrawFn") -> str:
     """Strategy for negative floats."""
     value = draw(
         st.floats(
@@ -39,7 +43,7 @@ def negative_floats(draw):
 
 
 @st.composite
-def negative_scientific(draw):
+def negative_scientific(draw: "DrawFn") -> str:
     """Strategy for negative numbers in scientific notation."""
     # Generate mantissa (e.g., -1.5, -2.0, -6.022)
     mantissa = draw(

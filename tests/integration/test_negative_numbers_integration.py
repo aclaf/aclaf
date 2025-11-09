@@ -103,14 +103,16 @@ class TestScientificComputing:
         )
         parser = Parser(spec, allow_negative_numbers=True)
 
-        result = parser.parse([
-            "--temp",
-            "-273.15",
-            "--pressure",
-            "1.0",
-            "--time",
-            "-0.5",
-        ])
+        result = parser.parse(
+            [
+                "--temp",
+                "-273.15",
+                "--pressure",
+                "1.0",
+                "--time",
+                "-0.5",
+            ]
+        )
         assert result.options["temp"].value == "-273.15"
         assert result.options["pressure"].value == "1.0"
         assert result.options["time"].value == "-0.5"

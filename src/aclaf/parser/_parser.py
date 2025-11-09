@@ -112,9 +112,7 @@ class Parser(BaseParser):
                     if (
                         self._allow_negative_numbers
                         and self._is_negative_number(opt)
-                        and self._in_value_consuming_context(
-                            positionals_started, current_spec
-                        )
+                        and self._in_value_consuming_context(current_spec)
                     ):
                         # Treat as positional value (negative number)
                         positionals += (arg,)
@@ -1087,7 +1085,6 @@ class Parser(BaseParser):
 
     def _in_value_consuming_context(
         self,
-        positionals_started: bool,  # noqa: ARG002, FBT001 - Currently unused, kept for future use
         current_spec: "CommandSpec",
     ) -> bool:
         """Check if parser is in a context where values are expected.
@@ -1096,7 +1093,6 @@ class Parser(BaseParser):
         treated as a value rather than as an option.
 
         Args:
-            positionals_started: Whether positional parsing has begun.
             current_spec: The current command specification.
 
         Returns:
