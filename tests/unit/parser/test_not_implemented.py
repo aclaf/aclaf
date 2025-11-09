@@ -1,8 +1,8 @@
-"""Tests for NotImplementedError fallbacks in the parser.
+"""Tests for RuntimeError fallbacks in the parser.
 
 These tests cover defensive code paths that should never be reached in normal usage.
-They serve as a documentation of what parsing scenarios are not yet implemented
-or are considered invalid.
+They serve as documentation of what parsing scenarios are considered invalid
+or represent bugs.
 
 If any of these tests start failing, it likely means:
 1. A new parsing scenario needs to be handled
@@ -16,13 +16,13 @@ from aclaf.parser import CommandSpec, OptionSpec, Parser
 from aclaf.parser.types import EXACTLY_ONE_ARITY, AccumulationMode
 
 
-class TestNotImplementedFallbacks:
-    """Tests for defensive NotImplementedError cases."""
+class TestRuntimeErrorFallbacks:
+    """Tests for defensive RuntimeError cases."""
 
     def test_unknown_accumulation_mode_fallback(self):
-        """Unknown accumulation mode should raise NotImplementedError.
+        """Unknown accumulation mode should raise RuntimeError with context.
 
-        This tests the defensive fallback at _parser.py:655-656.
+        This tests the defensive fallback in _accumulate_option.
 
         In normal usage, this should never be triggered since AccumulationMode
         is an enum and all valid modes are handled. This would only occur if:
@@ -50,14 +50,14 @@ class TestNotImplementedFallbacks:
 
         args = ["--output", "file1.txt", "--output", "file2.txt"]
 
-        # Should raise NotImplementedError due to unknown mode
-        with pytest.raises(NotImplementedError):
+        # Should raise RuntimeError with context due to unknown mode
+        with pytest.raises(RuntimeError, match="Unexpected option accumulation state"):
             _ = parser.parse(args)
 
     def test_flag_value_parsing_unknown_case(self):
         """Flag value parsing with unexpected value type.
 
-        This tests the defensive fallback at _parser.py:448-449.
+        This tests the defensive fallback in _parse_flag_with_value.
 
         This case should be unreachable in normal usage because:
         - Value is either a string (from args) or None
@@ -82,18 +82,24 @@ class TestUncoveredParsingScenarios:
     """
 
     def test_documentation_of_match_statement_coverage(self):
-        """Document what each NotImplementedError fallback protects against.
+        """Document what each RuntimeError fallback protects against.
 
-        Lines 448-449 (_parse_flag_with_value):
+        _parse_flag_with_value:
         - Protects against unexpected value types in flag value parsing
         - All current cases (str, None) are handled
         - Fallback ensures safety if types change in future
 
-        Lines 655-656 (_accumulate_option):
+        _accumulate_option:
         - Protects against unknown AccumulationMode values
         - All enum members are handled explicitly
         - Fallback ensures safety if new modes are added
 
+        _parse_long_option:
+        - Protects against unhandled option parsing states
+        - All valid combinations of option state flags handled
+        - Fallback catches bugs in match logic
+
         These defensive fallbacks are good practice even if unreachable,
         as they make the code more maintainable and catch regressions.
+        They now raise RuntimeError with contextual information to aid debugging.
         """

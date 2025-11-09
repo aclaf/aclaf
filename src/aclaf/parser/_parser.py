@@ -664,7 +664,12 @@ class Parser(BaseParser):
                     )
 
             case _:
-                raise NotImplementedError()
+                msg = (
+                    f"Unexpected long option parsing state: "
+                    f"is_flag={option_spec.is_flag}, arity={option_spec.arity}, "
+                    f"inline_value={inline_value!r}, has_next_args={bool(next_args)}"
+                )
+                raise RuntimeError(msg)
 
         accumulated_option = self._accumulate_option(
             options.get(parsed_option.name), parsed_option, current_spec
@@ -1131,7 +1136,11 @@ class Parser(BaseParser):
                     name=option_spec.name, alias=option_name, value=True
                 ), 0
             case _:
-                raise NotImplementedError()
+                msg = (
+                    f"Unexpected flag value state: value={value!r}, "
+                    f"inline_value={inline_value!r}, next_args={bool(next_args)}"
+                )
+                raise RuntimeError(msg)
 
     def _parse_option_from_inline_value(
         self, option_spec: "OptionSpec", option_name: str, value: str
@@ -1402,7 +1411,12 @@ class Parser(BaseParser):
                 )
 
             case _:
-                raise NotImplementedError()
+                msg = (
+                    f"Unexpected option accumulation state: "
+                    f"mode={option_spec.accumulation_mode}, "
+                    f"old={old}"
+                )
+                raise RuntimeError(msg)
         return accumulated_option
 
     @staticmethod
