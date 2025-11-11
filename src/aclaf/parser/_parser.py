@@ -775,12 +775,95 @@ class Parser(BaseParser):
                             )
 
                         # Build and return result (raises to exit parsing)
+                        # Inline positional grouping (first call site)
+                        grouped_positionals: dict[str, ParsedPositional]
+                        if not current_spec.positionals:
+                            # Implicit spec with unbounded arity (0, -1)
+                            implicit_spec = PositionalSpec(
+                                name="args", arity=ZERO_OR_MORE_ARITY
+                            )
+                            grouped_positionals = {
+                                implicit_spec.name: ParsedPositional(
+                                    name=implicit_spec.name, value=positionals
+                                )
+                            }
+                        else:
+                            positional_specs = list(current_spec.positionals.values())
+                            total_min_required = sum(
+                                spec.arity.min for spec in positional_specs
+                            )
+
+                            # Check if we have enough arguments
+                            if len(positionals) < total_min_required:
+                                # Find the first unsatisfied spec for error reporting
+                                consumed = 0
+                                for spec in positional_specs:
+                                    remaining = len(positionals) - consumed
+                                    if remaining < spec.arity.min:
+                                        raise InsufficientPositionalArgumentsError(
+                                            spec.name, spec.arity.min, remaining
+                                        )
+                                    consumed += spec.arity.min
+
+                            grouped_positionals = {}
+                            remaining_positionals = list(positionals)
+
+                            for spec_index, current_positional_spec in enumerate(
+                                positional_specs
+                            ):
+                                max_allowed = current_positional_spec.arity.max
+
+                                subsequent_min = sum(
+                                    s.arity.min
+                                    for s in positional_specs[spec_index + 1 :]
+                                )
+
+                                if max_allowed is None:
+                                    # Unbounded arity
+                                    to_consume = max(
+                                        0, len(remaining_positionals) - subsequent_min
+                                    )
+                                else:
+                                    # Bounded arity
+                                    available = max(
+                                        0, len(remaining_positionals) - subsequent_min
+                                    )
+                                    to_consume = min(max_allowed, available)
+
+                                consumed_values = remaining_positionals[:to_consume]
+                                remaining_positionals = remaining_positionals[
+                                    to_consume:
+                                ]
+
+                                # For EXACTLY_ONE arity, return scalar;
+                                # otherwise tuple
+                                if current_positional_spec.arity == EXACTLY_ONE_ARITY:
+                                    parsed_value: str | tuple[str, ...] = (
+                                        consumed_values[0] if consumed_values else ""
+                                    )
+                                else:
+                                    parsed_value = tuple(consumed_values)
+
+                                grouped_positionals[current_positional_spec.name] = (
+                                    ParsedPositional(
+                                        name=current_positional_spec.name,
+                                        value=parsed_value,
+                                    )
+                                )
+
+                            # Check for unexpected leftover positionals (strict mode)
+                            if (
+                                remaining_positionals
+                                and self.config.strict_options_before_positionals
+                            ):
+                                raise UnexpectedPositionalArgumentError(
+                                    remaining_positionals[0], current_spec.name
+                                )
+
                         result = ParseResult(
                             command=current_spec.name,
                             options=options,
-                            positionals=self._group_positionals(
-                                positionals, current_spec
-                            ),
+                            positionals=grouped_positionals,
                             extra_args=tuple(trailing_args),
                             subcommand=subcommand_result,
                         )
@@ -816,10 +899,81 @@ class Parser(BaseParser):
                 else:
                     flattened_options[option_name] = parsed_option
 
+            # Inline positional grouping (second call site)
+            grouped_positionals_final: dict[str, ParsedPositional]
+            if not current_spec.positionals:
+                # Implicit spec with unbounded arity (0, -1)
+                implicit_spec = PositionalSpec(name="args", arity=ZERO_OR_MORE_ARITY)
+                grouped_positionals_final = {
+                    implicit_spec.name: ParsedPositional(
+                        name=implicit_spec.name, value=positionals
+                    )
+                }
+            else:
+                positional_specs = list(current_spec.positionals.values())
+                total_min_required = sum(spec.arity.min for spec in positional_specs)
+
+                # Check if we have enough arguments
+                if len(positionals) < total_min_required:
+                    # Find the first unsatisfied spec for error reporting
+                    consumed = 0
+                    for spec in positional_specs:
+                        remaining = len(positionals) - consumed
+                        if remaining < spec.arity.min:
+                            raise InsufficientPositionalArgumentsError(
+                                spec.name, spec.arity.min, remaining
+                            )
+                        consumed += spec.arity.min
+
+                grouped_positionals_final = {}
+                remaining_positionals = list(positionals)
+
+                for spec_index, current_positional_spec in enumerate(positional_specs):
+                    max_allowed = current_positional_spec.arity.max
+
+                    subsequent_min = sum(
+                        s.arity.min for s in positional_specs[spec_index + 1 :]
+                    )
+
+                    if max_allowed is None:
+                        # Unbounded arity
+                        to_consume = max(0, len(remaining_positionals) - subsequent_min)
+                    else:
+                        # Bounded arity
+                        available = max(0, len(remaining_positionals) - subsequent_min)
+                        to_consume = min(max_allowed, available)
+
+                    consumed_values = remaining_positionals[:to_consume]
+                    remaining_positionals = remaining_positionals[to_consume:]
+
+                    # For EXACTLY_ONE arity, return scalar; otherwise tuple
+                    if current_positional_spec.arity == EXACTLY_ONE_ARITY:
+                        parsed_value_final: str | tuple[str, ...] = (
+                            consumed_values[0] if consumed_values else ""
+                        )
+                    else:
+                        parsed_value_final = tuple(consumed_values)
+
+                    grouped_positionals_final[current_positional_spec.name] = (
+                        ParsedPositional(
+                            name=current_positional_spec.name,
+                            value=parsed_value_final,
+                        )
+                    )
+
+                # Check for unexpected leftover positionals (strict mode)
+                if (
+                    remaining_positionals
+                    and self.config.strict_options_before_positionals
+                ):
+                    raise UnexpectedPositionalArgumentError(
+                        remaining_positionals[0], current_spec.name
+                    )
+
             return ParseResult(
                 command=current_spec.name,
                 options=flattened_options,
-                positionals=self._group_positionals(positionals, current_spec),
+                positionals=grouped_positionals_final,
                 extra_args=tuple(trailing_args),
             )
 
@@ -1069,77 +1223,6 @@ class Parser(BaseParser):
         return ParsedOption(
             name=option_spec.name, alias=option_name, value=parsed_value
         ), consumed
-
-    def _group_positionals(
-        self, positionals: tuple[str, ...], current_spec: "CommandSpec"
-    ) -> dict[str, ParsedPositional]:
-        # Handle implicit positional spec (when no positionals defined)
-        if not current_spec.positionals:
-            # Implicit spec with unbounded arity (0, -1)
-            implicit_spec = PositionalSpec(name="args", arity=ZERO_OR_MORE_ARITY)
-            return {
-                implicit_spec.name: ParsedPositional(
-                    name=implicit_spec.name, value=positionals
-                )
-            }
-
-        positional_specs = list(current_spec.positionals.values())
-        total_min_required = sum(spec.arity.min for spec in positional_specs)
-
-        # Check if we have enough arguments
-        if len(positionals) < total_min_required:
-            # Find the first unsatisfied spec for error reporting
-            consumed = 0
-            for spec in positional_specs:
-                remaining = len(positionals) - consumed
-                if remaining < spec.arity.min:
-                    raise InsufficientPositionalArgumentsError(
-                        spec.name, spec.arity.min, remaining
-                    )
-                consumed += spec.arity.min
-
-        grouped: dict[str, ParsedPositional] = {}
-        remaining_positionals = list(positionals)
-
-        for spec_index, current_positional_spec in enumerate(positional_specs):
-            max_allowed = current_positional_spec.arity.max
-
-            subsequent_min = sum(
-                s.arity.min for s in positional_specs[spec_index + 1 :]
-            )
-
-            if max_allowed is None:
-                # Unbounded arity
-                to_consume = max(0, len(remaining_positionals) - subsequent_min)
-            else:
-                # Bounded arity
-                available = max(0, len(remaining_positionals) - subsequent_min)
-                to_consume = min(max_allowed, available)
-
-            consumed_values = remaining_positionals[:to_consume]
-            remaining_positionals = remaining_positionals[to_consume:]
-
-            # For EXACTLY_ONE arity, return scalar string; otherwise tuple
-            if current_positional_spec.arity == EXACTLY_ONE_ARITY:
-                parsed_value: str | tuple[str, ...] = (
-                    consumed_values[0] if consumed_values else ""
-                )
-            else:
-                parsed_value = tuple(consumed_values)
-
-            grouped[current_positional_spec.name] = ParsedPositional(
-                name=current_positional_spec.name, value=parsed_value
-            )
-
-        # Check for unexpected leftover positionals only in strict mode
-        # In strict mode, options after positionals are treated as positionals
-        # and should raise an error if they don't fit the spec
-        if remaining_positionals and self.config.strict_options_before_positionals:
-            raise UnexpectedPositionalArgumentError(
-                remaining_positionals[0], current_spec.name
-            )
-
-        return grouped
 
     def _accumulate_option(  # noqa: PLR0912 - Complex accumulation logic for different modes
         self, old: ParsedOption | None, new: ParsedOption, current_spec: "CommandSpec"
