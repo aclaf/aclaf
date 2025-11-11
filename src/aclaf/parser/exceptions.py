@@ -2,11 +2,15 @@ from typing import TYPE_CHECKING
 
 from aclaf.exceptions import AclafError
 
-from ._utils import full_option_name
-
 if TYPE_CHECKING:
     from ._parameters import OptionSpec
     from .types import Arity
+
+
+def _format_option_name(name: str) -> str:
+    if len(name) == 1:
+        return f"-{name}"
+    return f"--{name}"
 
 
 def _format_arity(arity: "Arity") -> str:
@@ -208,7 +212,7 @@ class UnknownOptionError(ParseError):
     def __init__(self, name: str, possible_names: tuple[str, ...]) -> None:
         self.name: str = name
         self.possible_names: tuple[str, ...] = possible_names
-        message = f"Unknown option '{full_option_name(name)}'."
+        message = f"Unknown option '{_format_option_name(name)}'."
         super().__init__(message)
 
 
@@ -253,8 +257,8 @@ class OptionCannotBeSpecifiedMultipleTimesError(OptionError):
 
     def __init__(self, name: str, option_spec: "OptionSpec") -> None:
         super().__init__(name, option_spec)
-        message_name = full_option_name(name)
-        canonical_name = full_option_name(option_spec.name)
+        message_name = _format_option_name(name)
+        canonical_name = _format_option_name(option_spec.name)
         message = (
             f"Option '{message_name}' ({canonical_name}) cannot be "
             "specified multiple times."
@@ -298,8 +302,8 @@ class OptionDoesNotAcceptValueError(OptionError):
 
     def __init__(self, name: str, option_spec: "OptionSpec") -> None:
         super().__init__(name, option_spec)
-        message_name = full_option_name(name)
-        canonical_name = full_option_name(option_spec.name)
+        message_name = _format_option_name(name)
+        canonical_name = _format_option_name(option_spec.name)
         message = f"Option '{message_name}' ({canonical_name}) does not accept a value."
         self.args: tuple[str] = (message,)
 
@@ -339,8 +343,8 @@ class FlagWithValueError(OptionError):
 
     def __init__(self, name: str, option_spec: "OptionSpec") -> None:
         super().__init__(name, option_spec)
-        message_name = full_option_name(name)
-        canonical_name = full_option_name(option_spec.name)
+        message_name = _format_option_name(name)
+        canonical_name = _format_option_name(option_spec.name)
         message = (
             f"Flag option '{message_name}' ({canonical_name}) does not accept a value. "
             "Enable 'allow_equals_for_flags' to override this behavior "
@@ -398,8 +402,8 @@ class InvalidFlagValueError(ParseError):
         self.true_values: frozenset[str] = true_values
         self.false_values: frozenset[str] = false_values
 
-        message_name = full_option_name(name)
-        canonical_name = full_option_name(option_spec.name)
+        message_name = _format_option_name(name)
+        canonical_name = _format_option_name(option_spec.name)
         message = (
             f"Invalid value '{value}' for option '{message_name}' ({canonical_name}). "
             f"Expected one of: {', '.join(sorted(true_values | false_values))}."
@@ -441,14 +445,10 @@ class InsufficientOptionValuesError(OptionError):
 
     def __init__(self, name: str, option_spec: "OptionSpec") -> None:
         super().__init__(name, option_spec)
-        message_name = full_option_name(name)
-        canonical_name = full_option_name(option_spec.name)
+        message_name = _format_option_name(name)
+        canonical_name = _format_option_name(option_spec.name)
         # Arity should always be present for options, but handle None defensively
-        arity_str = (
-            _format_arity(option_spec.arity)
-            if option_spec.arity is not None
-            else "values"
-        )
+        arity_str = _format_arity(option_spec.arity)
         message = (
             f"Insufficient values provided for option '{message_name}' "
             f"({canonical_name}). Expected {arity_str}."
@@ -492,7 +492,7 @@ class AmbiguousOptionError(ParseError):
         self.name: str = name
         self.candidates: tuple[str, ...] = tuple(sorted(candidates))
         message = (
-            f"Ambiguous option '{full_option_name(name)}'. "
+            f"Ambiguous option '{_format_option_name(name)}'. "
             f"Possible matches: {', '.join(self.candidates)}."
         )
         super().__init__(message)

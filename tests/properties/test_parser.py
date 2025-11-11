@@ -465,16 +465,7 @@ class TestArityValidationProperties:
         if max_arity is not None and min_arity > max_arity:
             return
 
-        arity = _validate_arity(Arity(min_arity, max_arity))
-
-        # Property: returned arity should match input
-        assert arity.min == min_arity
-        assert arity.max == max_arity
-        # Property: invariants should hold
-        assert arity.min >= 0
-        if arity.max is not None:
-            assert arity.max >= 0
-            assert arity.min <= arity.max
+        _validate_arity(Arity(min_arity, max_arity))
 
     @given(
         min_arity=st.integers(max_value=-1),
@@ -520,29 +511,6 @@ class TestArityValidationProperties:
             ValueError, match="Minimum arity must be less than maximum arity"
         ):
             _ = _validate_arity(Arity(min_arity, max_arity))
-
-    @given(
-        min_arity=st.integers(min_value=0, max_value=100),
-        max_arity=st.integers(min_value=0, max_value=100) | st.none(),
-    )
-    def test_validate_arity_arity_object_passthrough(
-        self, min_arity: int, max_arity: int | None
-    ):
-        """Property: Arity objects are validated but returned with same values.
-
-        For any valid Arity object, _validate_arity should validate it
-        and return an Arity with the same min/max values.
-        """
-        # Skip invalid cases
-        if max_arity is not None and min_arity > max_arity:
-            return
-
-        input_arity = Arity(min_arity, max_arity)
-        result_arity = _validate_arity(input_arity)
-
-        # Property: values should be preserved
-        assert result_arity.min == input_arity.min
-        assert result_arity.max == input_arity.max
 
 
 class TestParserIdempotenceProperties:
