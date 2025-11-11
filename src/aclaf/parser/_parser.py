@@ -142,14 +142,202 @@ class Parser(BaseParser):
                         positionals += (arg,)
                         position += 1
                     else:
-                        # Parse as long option
-                        parsed_option, consumed = self._parse_long_option(
-                            arg[2:],
-                            args[position + 1 :],
-                            current_spec,
-                            MappingProxyType(options),
+                        # Parse as long option (inlined from _parse_long_option)
+                        arg_without_dashes = arg[2:]
+                        next_args = args[position + 1 :]
+                        parts = arg_without_dashes.split("=", 1)
+                        option_name, option_spec = self._resolve_long_option(
+                            parts[0], current_spec
                         )
-                        options[parsed_option.name] = parsed_option
+                        inline_value = parts[1] if len(parts) == 2 else None  # noqa: PLR2004
+                        parsed_option: ParsedOption
+                        consumed: int = 0
+
+                        match (
+                            option_spec.is_flag,
+                            option_spec.arity,
+                            inline_value,
+                            bool(next_args),
+                        ):
+                            # Flag with value and flag values not allowed
+                            case (True, _, str(), _) if (
+                                not self.config.allow_equals_for_flags
+                            ):
+                                raise FlagWithValueError(option_spec.name, option_spec)
+
+                            # Flag with inline value and flag values allowed
+                            case (True, _, str(), _) if (
+                                self.config.allow_equals_for_flags
+                            ):
+                                parsed_option, consumed = self._parse_flag_with_value(
+                                    option_spec, option_name, inline_value, next_args
+                                )
+
+                            # Flag with value from next_args and flag values allowed
+                            case (True, _, None, True) if (
+                                self.config.allow_equals_for_flags
+                            ):
+                                parsed_option, consumed = self._parse_flag_with_value(
+                                    option_spec, option_name, inline_value, next_args
+                                )
+
+                            # Flag without value and const value defined
+                            case (True, _, None, _) if (
+                                option_spec.const_value is not None
+                            ):
+                                parsed_option, consumed = (
+                                    ParsedOption(
+                                        name=option_spec.name,
+                                        alias=option_name,
+                                        value=option_spec.const_value,
+                                    ),
+                                    0,
+                                )
+
+                            # Flag without value and negation words defined
+                            case (True, _, None, _) if option_spec.negation_words:
+                                for negation_word in option_spec.negation_words:
+                                    negated_prefix = f"{negation_word}-"
+                                    if option_name.startswith(negated_prefix):
+                                        parsed_option, consumed = (
+                                            ParsedOption(
+                                                name=option_spec.name,
+                                                alias=option_name,
+                                                value=False,
+                                            ),
+                                            0,
+                                        )
+                                        break
+                                else:
+                                    parsed_option, consumed = (
+                                        ParsedOption(
+                                            name=option_spec.name,
+                                            alias=option_name,
+                                            value=True,
+                                        ),
+                                        0,
+                                    )
+
+                            # Flag without value and no const value or negation words
+                            case (True, _, None, _):
+                                parsed_option, consumed = (
+                                    ParsedOption(
+                                        name=option_spec.name,
+                                        alias=option_name,
+                                        value=True,
+                                    ),
+                                    0,
+                                )
+
+                            # Arity requires multiple values but only has inline value
+                            case (False, arity, str(), _) if arity and arity.min > 1:
+                                raise InsufficientOptionValuesError(
+                                    option_spec.name, option_spec
+                                )
+
+                            # Arity allows multiple values
+                            case (False, arity, str() as val, _) if (
+                                arity and self._arity_accepts_values(arity)
+                            ):
+                                parsed_option, consumed = (
+                                    self._parse_option_from_inline_value(
+                                        option_spec, option_name, val
+                                    ),
+                                    0,
+                                )
+
+                            # Consume values from next_args
+                            case (False, arity, None, _) if (
+                                arity and self._arity_accepts_values(arity)
+                            ):
+                                parsed_option, consumed = (
+                                    self._parse_option_values_from_args(
+                                        option_spec,
+                                        option_name,
+                                        next_args,
+                                        current_spec,
+                                    )
+                                )
+
+                            # Zero arity with inline value
+                            case (False, arity, str() as val, _) if _is_zero_arity(
+                                arity
+                            ):
+                                # Zero-arity non-flag options with values
+                                # Treat as flag value if allow_equals_for_flags enabled
+                                if self.config.allow_equals_for_flags and val:
+                                    parsed_option, consumed = (
+                                        self._parse_flag_with_value(
+                                            option_spec, option_name, val, next_args
+                                        )
+                                    )
+                                # Empty value raises OptionDoesNotAcceptValueError
+                                elif val == "":
+                                    raise OptionDoesNotAcceptValueError(
+                                        option_name, option_spec
+                                    )
+                                # Non-empty value raises FlagWithValueError
+                                else:
+                                    raise FlagWithValueError(option_name, option_spec)
+
+                            # Zero arity without value
+                            case (False, arity, None, _) if _is_zero_arity(arity):
+                                # Check for const value first
+                                if option_spec.const_value is not None:
+                                    parsed_option, consumed = (
+                                        ParsedOption(
+                                            name=option_spec.name,
+                                            alias=option_name,
+                                            value=option_spec.const_value,
+                                        ),
+                                        0,
+                                    )
+                                # Check for negation words
+                                elif option_spec.negation_words:
+                                    for negation_word in option_spec.negation_words:
+                                        negated_prefix = f"{negation_word}-"
+                                        if option_name.startswith(negated_prefix):
+                                            parsed_option, consumed = (
+                                                ParsedOption(
+                                                    name=option_spec.name,
+                                                    alias=option_name,
+                                                    value=False,
+                                                ),
+                                                0,
+                                            )
+                                            break
+                                    else:
+                                        # No negation prefix matched, default to True
+                                        parsed_option, consumed = (
+                                            ParsedOption(
+                                                name=option_spec.name,
+                                                alias=option_name,
+                                                value=True,
+                                            ),
+                                            0,
+                                        )
+                                else:
+                                    parsed_option, consumed = (
+                                        ParsedOption(
+                                            name=option_spec.name,
+                                            alias=option_name,
+                                            value=True,
+                                        ),
+                                        0,
+                                    )
+
+                            case _:
+                                msg = (
+                                    "Unreachable: all valid combinations of "
+                                    "(is_flag, arity, inline_value, next_args) "
+                                    "should be handled"
+                                )
+                                raise AssertionError(msg)
+
+                        accumulated_option = self._accumulate_option(
+                            options.get(parsed_option.name), parsed_option, current_spec
+                        )
+                        options[accumulated_option.name] = accumulated_option
                         position += 1 + consumed
 
                 # Handle short option or negative number
@@ -289,159 +477,6 @@ class Parser(BaseParser):
             convert_underscores=self.config.convert_underscores_to_dashes,
             minimum_abbreviation_length=self.config.minimum_abbreviation_length,
         )
-
-    def _parse_long_option(  # noqa: PLR0912 - Complex long option parsing logic
-        self,
-        arg_without_dashes: str,
-        next_args: "Sequence[str]",
-        current_spec: "CommandSpec",
-        options: MappingProxyType[str, ParsedOption],
-    ) -> tuple[ParsedOption, int]:
-        parts = arg_without_dashes.split("=", 1)
-        option_name, option_spec = self._resolve_long_option(parts[0], current_spec)
-        inline_value = parts[1] if len(parts) == 2 else None  # noqa: PLR2004
-        parsed_option: ParsedOption
-        consumed: int = 0
-
-        match (option_spec.is_flag, option_spec.arity, inline_value, bool(next_args)):
-            # Flag with value and flag values not allowed
-            case (True, _, str(), _) if not self.config.allow_equals_for_flags:
-                raise FlagWithValueError(option_spec.name, option_spec)
-
-            # Flag with inline value and flag values allowed
-            case (True, _, str(), _) if self.config.allow_equals_for_flags:
-                parsed_option, consumed = self._parse_flag_with_value(
-                    option_spec, option_name, inline_value, next_args
-                )
-
-            # Flag with value from next_args and flag values allowed
-            case (True, _, None, True) if self.config.allow_equals_for_flags:
-                parsed_option, consumed = self._parse_flag_with_value(
-                    option_spec, option_name, inline_value, next_args
-                )
-
-            # Flag without value and const value defined
-            case (True, _, None, _) if option_spec.const_value is not None:
-                parsed_option, consumed = (
-                    ParsedOption(
-                        name=option_spec.name,
-                        alias=option_name,
-                        value=option_spec.const_value,
-                    ),
-                    0,
-                )
-
-            # Flag without value and negation words defined
-            case (True, _, None, _) if option_spec.negation_words:
-                for negation_word in option_spec.negation_words:
-                    negated_prefix = f"{negation_word}-"
-                    if option_name.startswith(negated_prefix):
-                        return ParsedOption(
-                            name=option_spec.name, alias=option_name, value=False
-                        ), 0
-                parsed_option, consumed = (
-                    ParsedOption(name=option_spec.name, alias=option_name, value=True),
-                    0,
-                )
-
-            # Flag without value and no const value or negation words
-            case (True, _, None, _):
-                parsed_option, consumed = (
-                    ParsedOption(name=option_spec.name, alias=option_name, value=True),
-                    0,
-                )
-
-            # Arity requires multiple values but only has inline value
-            case (False, arity, str(), _) if arity and arity.min > 1:
-                raise InsufficientOptionValuesError(option_spec.name, option_spec)
-
-            # Arity allows multiple values
-            case (False, arity, str() as val, _) if (
-                arity and self._arity_accepts_values(arity)
-            ):
-                parsed_option, consumed = (
-                    self._parse_option_from_inline_value(option_spec, option_name, val),
-                    0,
-                )
-
-            # Consume values from next_args
-            case (False, arity, None, _) if arity and self._arity_accepts_values(arity):
-                parsed_option, consumed = self._parse_option_values_from_args(
-                    option_spec, option_name, next_args, current_spec
-                )
-
-            # Zero arity with inline value
-            case (False, arity, str() as val, _) if _is_zero_arity(arity):
-                # Zero-arity non-flag options with values
-                # If allow_equals_for_flags is enabled, treat as flag value
-                if self.config.allow_equals_for_flags and val:
-                    parsed_option, consumed = self._parse_flag_with_value(
-                        option_spec, option_name, val, next_args
-                    )
-                # Empty value raises OptionDoesNotAcceptValueError
-                elif val == "":
-                    raise OptionDoesNotAcceptValueError(option_name, option_spec)
-                # Non-empty value raises FlagWithValueError (attempting to use as flag)
-                else:
-                    raise FlagWithValueError(option_name, option_spec)
-
-            # Zero arity without value
-            case (False, arity, None, _) if _is_zero_arity(arity):
-                # Check for const value first
-                if option_spec.const_value is not None:
-                    parsed_option, consumed = (
-                        ParsedOption(
-                            name=option_spec.name,
-                            alias=option_name,
-                            value=option_spec.const_value,
-                        ),
-                        0,
-                    )
-                # Check for negation words
-                elif option_spec.negation_words:
-                    for negation_word in option_spec.negation_words:
-                        negated_prefix = f"{negation_word}-"
-                        if option_name.startswith(negated_prefix):
-                            parsed_option, consumed = (
-                                ParsedOption(
-                                    name=option_spec.name,
-                                    alias=option_name,
-                                    value=False,
-                                ),
-                                0,
-                            )
-                            break
-                    else:
-                        # No negation prefix matched, default to True
-                        parsed_option, consumed = (
-                            ParsedOption(
-                                name=option_spec.name,
-                                alias=option_name,
-                                value=True,
-                            ),
-                            0,
-                        )
-                else:
-                    parsed_option, consumed = (
-                        ParsedOption(
-                            name=option_spec.name,
-                            alias=option_name,
-                            value=True,
-                        ),
-                        0,
-                    )
-
-            case _:
-                msg = (
-                    "Unreachable: all valid combinations of "
-                    "(is_flag, arity, inline_value, next_args) should be handled"
-                )
-                raise AssertionError(msg)
-
-        accumulated_option = self._accumulate_option(
-            options.get(parsed_option.name), parsed_option, current_spec
-        )
-        return accumulated_option, consumed
 
     def _parse_short_options(  # noqa: PLR0915 - Monolithic character parser by design
         self,
