@@ -105,7 +105,8 @@ class Parser(BaseParser):
             UnknownSubcommandError: If an unknown subcommand is encountered
             Various validation errors: If argument validation fails
         """
-        # Parsing state variables
+        # === STATE INITIALIZATION ===
+        # Initialize parsing state variables for single-pass, left-to-right parsing
         current_spec = root_spec
         position = 0
         options: dict[str, ParsedOption] = {}
@@ -115,27 +116,30 @@ class Parser(BaseParser):
         trailing_args: list[str] = []
 
         try:
-            # Main parsing loop
+            # === MAIN PARSING LOOP ===
+            # Single-pass left-to-right parsing with dispatch based on arg structure
             while position < len(args):
                 arg = args[position]
 
-                # Handle trailing args (after --)
+                # Handle trailing arguments after --
                 if trailing_mode:
                     trailing_args.append(arg)
                     position += 1
 
                 # Handle double-dash separator
+                # Everything after -- is treated as trailing arguments (not options)
                 elif arg == "--":
                     trailing_mode = True
                     position += 1
 
-                # Handle long option
+                # Handle long options (--option or --option=value)
                 elif arg.startswith("--"):
                     # Check if should treat as positional (strict mode or no options)
                     should_treat_as_positional = (
-                        positionals_started
-                        and self.config.strict_options_before_positionals
-                    ) or (positionals_started and not current_spec.options)
+                        self._should_treat_option_as_positional(
+                            positionals_started, current_spec
+                        )
+                    )
 
                     if should_treat_as_positional:
                         positionals += (arg,)
@@ -339,13 +343,15 @@ class Parser(BaseParser):
                         options[accumulated_option.name] = accumulated_option
                         position += 1 + consumed
 
-                # Handle short option or negative number
+                # Handle short options or negative numbers
+                # Short options can be combined: -abc, -o value, -o=value
                 elif arg.startswith("-") and arg != "-":
-                    # Check for negative number
+                    # Check for negative number (e.g., -5, -3.14)
+                    # Only treat as value if we're in a context that accepts positionals
                     is_negative_number = (
                         self.config.allow_negative_numbers
                         and self._is_negative_number(arg)
-                        and self._in_value_consuming_context(current_spec)
+                        and bool(current_spec.positionals)
                     )
 
                     if is_negative_number:
@@ -355,9 +361,10 @@ class Parser(BaseParser):
                     else:
                         # Check if should treat as positional
                         should_treat_as_positional = (
-                            positionals_started
-                            and self.config.strict_options_before_positionals
-                        ) or (positionals_started and not current_spec.options)
+                            self._should_treat_option_as_positional(
+                                positionals_started, current_spec
+                            )
+                        )
 
                         if should_treat_as_positional:
                             positionals += (arg,)
@@ -750,7 +757,8 @@ class Parser(BaseParser):
                                 options[accumulated.name] = accumulated
                             position += 1 + next_args_consumed
 
-                # Handle subcommand or positional
+                # Handle subcommands and positional arguments
+                # Try subcommand resolution first, then treat as positional
                 else:
                     # Try to resolve as subcommand
                     subcommand_resolution = current_spec.resolve_subcommand(
@@ -810,7 +818,8 @@ class Parser(BaseParser):
                     position += 1
                     positionals_started = True
 
-            # Build final parse result
+            # === BUILD FINAL PARSE RESULT ===
+            # Apply value flattening, group positionals, and construct ParseResult
             # Apply value flattening to options that need it
             flattened_options: dict[str, ParsedOption] = {}
             for option_name, parsed_option in options.items():
@@ -1229,6 +1238,29 @@ class Parser(BaseParser):
             or (arity.min == 0 and arity.max is not None and arity.max > 0)
         )
 
+    def _should_treat_option_as_positional(
+        self,
+        positionals_started: bool,  # noqa: FBT001 - Local helper uses bool for clarity
+        current_spec: "CommandSpec",
+    ) -> bool:
+        """Check if an option-like argument should be treated as a positional.
+
+        This occurs in two cases:
+        1. Strict mode: positionals have started and
+           strict_options_before_positionals is enabled
+        2. No options defined: positionals have started and spec has no options
+
+        Args:
+            positionals_started: Whether any positional arguments have been parsed.
+            current_spec: The current command specification.
+
+        Returns:
+            True if the option should be treated as a positional argument.
+        """
+        return (
+            positionals_started and self.config.strict_options_before_positionals
+        ) or (positionals_started and not current_spec.options)
+
     def _is_negative_number(self, arg: str) -> bool:
         """Check if argument matches negative number pattern.
 
@@ -1240,24 +1272,6 @@ class Parser(BaseParser):
         """
         pattern = self.config.negative_number_pattern or DEFAULT_NEGATIVE_NUMBER_PATTERN
         return bool(re.match(pattern, arg))
-
-    def _in_value_consuming_context(
-        self,
-        current_spec: "CommandSpec",
-    ) -> bool:
-        """Check if parser is in a context where values are expected.
-
-        This determines whether a negative-number-like argument should be
-        treated as a value rather than as an option.
-
-        Args:
-            current_spec: The current command specification.
-
-        Returns:
-            True if in a context that expects values (positional arguments).
-        """
-        # Spec allows positionals (either already started or can start now)
-        return bool(current_spec.positionals)
 
 
 # Helper functions for arity checking
