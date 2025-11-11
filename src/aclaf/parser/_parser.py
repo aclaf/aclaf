@@ -156,8 +156,11 @@ class _ShortOptionSpecParser:
             # Previous option was ZERO_ARITY but user tried to provide value
             # last_option_spec is guaranteed to be non-None in this code path
             if self.last_option_spec is None:
-                msg = "Unexpected state: last_option_spec is None"
-                raise RuntimeError(msg)
+                msg = (
+                    "Unreachable: last_option_spec must be non-None after "
+                    "_looks_like_inline_value_attempt"
+                )
+                raise AssertionError(msg)
             raise OptionDoesNotAcceptValueError(
                 self.option_specs[-1][0],
                 self.last_option_spec,
@@ -253,7 +256,6 @@ class _ShortOptionSpecParser:
         """Check if option requires values and there are remaining characters."""
         return (
             not option_spec.is_flag
-            and option_spec.arity is not None
             and option_spec.arity.min > 0
             and self.position < len(self.arg)
         )
@@ -797,11 +799,10 @@ class Parser(BaseParser):
 
             case _:
                 msg = (
-                    f"Unexpected long option parsing state: "
-                    f"is_flag={option_spec.is_flag}, arity={option_spec.arity}, "
-                    f"inline_value={inline_value!r}, has_next_args={bool(next_args)}"
+                    "Unreachable: all valid combinations of "
+                    "(is_flag, arity, inline_value, next_args) should be handled"
                 )
-                raise RuntimeError(msg)
+                raise AssertionError(msg)
 
         accumulated_option = self._accumulate_option(
             options.get(parsed_option.name), parsed_option, current_spec
@@ -952,9 +953,12 @@ class Parser(BaseParser):
         if arity.min > 0:
             raise InsufficientOptionValuesError(option_spec.name, option_spec)
 
-        # Should not reach here
-        msg = f"Unexpected inner short option state: {option_spec.name}"
-        raise RuntimeError(msg)
+        # Unreachable: all valid option configurations should be handled above
+        msg = (
+            f"Unreachable: option {option_spec.name!r} has unexpected "
+            f"configuration (arity.min={arity.min})"
+        )
+        raise AssertionError(msg)
 
     def _parse_last_short_option(  # noqa: PLR0913 - Refactored helper
         self,
@@ -1270,11 +1274,12 @@ class Parser(BaseParser):
                     name=option_spec.name, alias=option_name, value=True
                 ), 0
             case _:
+                # Unreachable: value is either None or str
                 msg = (
-                    f"Unexpected flag value state: value={value!r}, "
-                    f"inline_value={inline_value!r}, next_args={bool(next_args)}"
+                    f"Unreachable: flag value must be None or str, "
+                    f"got {type(value).__name__}"
                 )
-                raise RuntimeError(msg)
+                raise AssertionError(msg)
 
     def _parse_option_from_inline_value(
         self, option_spec: "OptionSpec", option_name: str, value: str
@@ -1546,12 +1551,12 @@ class Parser(BaseParser):
                 )
 
             case _:
+                # Unreachable: all AccumulationMode values should be handled
                 msg = (
-                    f"Unexpected option accumulation state: "
-                    f"mode={option_spec.accumulation_mode}, "
-                    f"old={old}"
+                    f"Unreachable: unexpected accumulation mode "
+                    f"{option_spec.accumulation_mode!r}"
                 )
-                raise RuntimeError(msg)
+                raise AssertionError(msg)
         return accumulated_option
 
     @staticmethod
