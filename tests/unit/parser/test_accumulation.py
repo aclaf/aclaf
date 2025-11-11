@@ -248,7 +248,7 @@ class TestFirstWinsMode:
         result = parser.parse(["--opt", "only"])
         assert result.options["opt"].value == "only"
 
-    def test_first_wins_with_flags(self):
+    def test_accumulation_first_wins_with_flags(self):
         """FIRST_WINS works with boolean flags."""
         spec = CommandSpec(
             name="cmd",
@@ -265,7 +265,7 @@ class TestFirstWinsMode:
         result = parser.parse(["--flag", "--flag", "--flag"])
         assert result.options["flag"].value is True
 
-    def test_first_wins_with_multi_value_option(self):
+    def test_accumulation_first_wins_with_multi_value_option(self):
         """FIRST_WINS with options accepting multiple values."""
         spec = CommandSpec(
             name="cmd",
@@ -378,7 +378,7 @@ class TestLastWinsMode:
 class TestErrorMode:
     """Test ERROR accumulation mode."""
 
-    def test_error_on_duplicate(self):
+    def test_accumulation_error_on_duplicate(self):
         """ERROR mode raises on duplicate occurrence."""
         spec = CommandSpec(
             name="cmd",
@@ -393,7 +393,7 @@ class TestErrorMode:
 
         assert "opt" in str(exc_info.value).lower()
 
-    def test_error_allows_single_occurrence(self):
+    def test_accumulation_error_allows_single_occurrence(self):
         """ERROR mode allows single occurrence."""
         spec = CommandSpec(
             name="cmd",
@@ -444,7 +444,7 @@ class TestErrorMode:
 class TestAccumulationModeInteractions:
     """Test interactions between accumulation modes and other features."""
 
-    def test_accumulation_with_const_value(self):
+    def test_accumulation_mode_with_const_value(self):
         """Accumulation modes work with const_value."""
         spec = CommandSpec(
             name="cmd",

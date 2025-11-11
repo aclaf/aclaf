@@ -23,7 +23,7 @@ from aclaf.parser.types import (
 class TestShortOptionWithEquals:
     """Test short options using the -o=value syntax."""
 
-    def test_parses_single_value(self):
+    def test_short_option_equals_parses_single_value(self):
         """Test short option with equals syntax requiring exactly one value.
 
         Verifies that a short option with arity=1 correctly parses the value
@@ -44,7 +44,7 @@ class TestShortOptionWithEquals:
         result = parser.parse(args)
         assert result.options["output"].value == "file.txt"
 
-    def test_consumes_only_equals_value(self):
+    def test_short_option_equals_consumes_only_equals_value(self):
         """Test short option with equals syntax requiring one or more values.
 
         Verifies that when an option with arity=1+ uses equals syntax, only the
@@ -65,7 +65,7 @@ class TestShortOptionWithEquals:
         result = parser.parse(args)
         assert result.options["files"].value == ("file.txt",)
 
-    def test_insufficient_single_value_raises_error(self):
+    def test_short_option_equals_insufficient_single_value_raises_error(self):
         """Test short option with equals syntax requiring at least two values.
 
         Verifies that when an option requires 2+ values, using equals syntax
@@ -86,7 +86,7 @@ class TestShortOptionWithEquals:
         with pytest.raises(InsufficientOptionValuesError):
             _ = parser.parse(args)
 
-    def test_empty_string_satisfies_arity(self):
+    def test_short_option_equals_empty_string_satisfies_arity(self):
         """Test short option with empty string value using equals syntax.
 
         Verifies that -o= (with nothing after equals) is treated as an empty
@@ -107,7 +107,7 @@ class TestShortOptionWithEquals:
         result = parser.parse(args)
         assert result.options["output"].value == ""
 
-    def test_empty_string_satisfies_one_or_more_arity(self):
+    def test_short_option_equals_empty_string_satisfies_one_or_more_arity(self):
         """Test short option with empty string for arity requiring one or more values.
 
         Verifies that -f= (empty string) satisfies arity=1+ by providing a single
@@ -128,7 +128,7 @@ class TestShortOptionWithEquals:
         result = parser.parse(args)
         assert result.options["files"].value == ("",)
 
-    def test_empty_value_for_flag_raises_error(self):
+    def test_short_option_equals_empty_value_for_flag_raises_error(self):
         """Test short option flag with empty value using equals syntax.
 
         Verifies that flags (arity=0) cannot accept values, even empty strings.
@@ -149,7 +149,7 @@ class TestShortOptionWithEquals:
         with pytest.raises(OptionDoesNotAcceptValueError):
             _ = parser.parse(args)
 
-    def test_value_for_flag_raises_error(self):
+    def test_short_option_equals_value_for_flag_raises_error(self):
         """Test short option flag with a value using equals syntax.
 
         Verifies that flags (arity=0) cannot accept values. Using -v=true
@@ -170,7 +170,7 @@ class TestShortOptionWithEquals:
         with pytest.raises(OptionDoesNotAcceptValueError):
             _ = parser.parse(args)
 
-    def test_flag_equals_disabled_empty_value_raises_error(
+    def test_short_option_flag_equals_disabled_empty_value_raises_error(
         self,
     ):
         """Test flag with equals and empty value when flag values are disabled.
@@ -191,7 +191,7 @@ class TestShortOptionWithEquals:
         with pytest.raises(FlagWithValueError):
             _ = parser.parse(args)
 
-    def test_flag_equals_enabled_empty_value_raises_error(self):
+    def test_short_option_flag_equals_enabled_empty_value_raises_error(self):
         """Test flag with equals and empty value when flag values are enabled.
 
         Verifies that when allow_equals_for_flags=True, an empty value after
@@ -211,7 +211,7 @@ class TestShortOptionWithEquals:
         with pytest.raises(InvalidFlagValueError):
             _ = parser.parse(args)
 
-    def test_flag_equals_disabled_value_raises_error(self):
+    def test_short_option_flag_equals_disabled_value_raises_error(self):
         """Test flag with value using equals when flag values are disabled.
 
         Verifies that when allow_equals_for_flags=False, providing any value
@@ -230,7 +230,7 @@ class TestShortOptionWithEquals:
         with pytest.raises(FlagWithValueError):
             _ = parser.parse(args)
 
-    def test_flag_equals_enabled_parses_truthy_falsey(self):
+    def test_short_option_flag_equals_enabled_parses_truthy_falsey(self):
         """Test flag with valid truthy/falsey values when flag values are enabled.
 
         Verifies that when allow_equals_for_flags=True, flags can accept values
@@ -255,7 +255,7 @@ class TestShortOptionWithEquals:
             result = parser.parse([f"-v={value}"])
             assert result.options["verbose"].value is True
 
-    def test_custom_flag_values_at_option_level(self):
+    def test_short_option_custom_flag_values_at_option_level(self):
         """Test flag with custom truthy/falsey values defined at option level.
 
         Verifies that options can define custom truthy and falsey values that
@@ -284,7 +284,7 @@ class TestShortOptionWithEquals:
         result = parser.parse(["-v=bar"])
         assert result.options["verbose"].value is True
 
-    def test_custom_flag_values_at_parser_level(self):
+    def test_short_option_custom_flag_values_at_parser_level(self):
         """Test flag with custom truthy/falsey values defined at parser level.
 
         Verifies that parsers can define default custom truthy and falsey values
@@ -312,7 +312,7 @@ class TestShortOptionWithEquals:
         result = parser.parse(["-v=bar"])
         assert result.options["verbose"].value is True
 
-    def test_invalid_flag_value_raises_error(self):
+    def test_short_option_invalid_flag_value_raises_error(self):
         """Test flag with value not in truthy or falsey value sets.
 
         Verifies that when allow_equals_for_flags=True and a value is provided
@@ -366,7 +366,7 @@ class TestCombinedShortOptionsWithEquals:
 class TestShortOptionWithoutEquals:
     """Test short options using the -o value syntax (without equals)."""
 
-    def test_consumes_next_argument(self):
+    def test_short_option_space_consumes_next_argument(self):
         """Test short option requiring exactly one value from next argument.
 
         Verifies that a short option with arity=1 correctly consumes the next
@@ -387,7 +387,7 @@ class TestShortOptionWithoutEquals:
         result = parser.parse(args)
         assert result.options["output"].value == "file.txt"
 
-    def test_flag_defaults_to_true(self):
+    def test_short_option_flag_defaults_to_true(self):
         """Test short option flag that takes no arguments.
 
         Verifies that a flag (arity=0) can be used without providing any value
@@ -408,7 +408,7 @@ class TestShortOptionWithoutEquals:
         result = parser.parse(args)
         assert result.options["verbose"].value is True
 
-    def test_consumes_all_following_non_option_args(self):
+    def test_short_option_space_consumes_all_following_non_option_args(self):
         """Test short option that accepts zero or more values.
 
         Verifies that an option with arity=0+ consumes all following arguments
@@ -429,7 +429,7 @@ class TestShortOptionWithoutEquals:
         result = parser.parse(args)
         assert result.options["files"].value == ("file1.txt", "file2.txt")
 
-    def test_missing_required_value_raises_error(self):
+    def test_short_option_space_missing_required_value_raises_error(self):
         """Test short option with insufficient values provided.
 
         Verifies that when an option requires 1+ values but none are provided,
