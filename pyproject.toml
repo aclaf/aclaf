@@ -85,6 +85,37 @@ markers = [
   "security: Security-focused tests for injection and validation (deselect with '-m \"not security\"')",
 ]
 
+[tool.coverage.run]
+branch = true
+source = ["src/aclaf"]
+relative_files = true
+omit = [
+    "tests/*",
+    "**/__pycache__/*",
+    "**/site-packages/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+    "@abc.abstractmethod",
+]
+precision = 2
+show_missing = true
+skip_covered = false
+
+[tool.coverage.xml]
+output = "coverage.xml"
+
+[tool.coverage.html]
+directory = "htmlcov"
+
 [tool.hypothesis]
 # Save failing examples to local database for reproducibility
 database = ".hypothesis/examples"
