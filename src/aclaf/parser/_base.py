@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, replace
-from typing import TYPE_CHECKING, Unpack, override
+from typing import TYPE_CHECKING
+from typing_extensions import Unpack, override
 
 from aclaf.parser._configuration import (
     DEFAULT_PARSER_CONFIGURATION,

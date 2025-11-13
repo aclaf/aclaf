@@ -68,3 +68,4 @@ repos:
         args: [sync]
       - id: vale
         args: [--output=line, --minAlertLevel=warning]
+        exclude: (^(README\.md))

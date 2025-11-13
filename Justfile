@@ -1,5 +1,7 @@
 set unstable
 
+default_python := "3.13"
+
 # List available recipes
 default:
   @just --list
@@ -14,8 +16,13 @@ build: install
   uv build
 
 # Run tests
-test: install
-  uv run --frozen pytest
+test target=default_python *args: install
+  #!/bin/sh
+  if [ "{{target}}" = "{{default_python}}" ]; then
+    uv run --frozen pytest "$@"
+  else
+    uv run --isolated --python={{target}} --frozen pytest "$@"
+  fi
 
 # Run performance benchmarks
 benchmark: install

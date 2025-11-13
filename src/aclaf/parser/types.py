@@ -1,5 +1,6 @@
 from enum import Enum
-from typing import Final, NamedTuple, override
+from typing import Final, NamedTuple
+from typing_extensions import override
 
 
 class AccumulationMode(Enum):
