@@ -72,7 +72,7 @@ Suggested Fix:
 
 Environment:
 - Aclaf version/commit: [version or commit hash]
-- Python version: [e.g., 3.12.5]
+- Python version: [e.g., 3.14.0, 3.13.1, 3.12.5, 3.11.8, or 3.10.15]
 - Operating system: [e.g., Ubuntu 24.04]
 ```
 

@@ -1,6 +1,7 @@
 import re
 from functools import cache
-from typing import TYPE_CHECKING, override
+from typing import TYPE_CHECKING
+from typing_extensions import override
 
 from .exceptions import (
     AmbiguousOptionError,

@@ -1,6 +1,6 @@
 # Aclaf
 
-Aclaf is a command line application framework for building CLI programs in Python 3.12 and above.
+Aclaf is a command line application framework for building CLI programs in Python 3.10 and above.
 
 ## License
 

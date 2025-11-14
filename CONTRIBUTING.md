@@ -118,7 +118,7 @@ Understanding Aclaf's values helps frame useful discussions and issue reports:
 
 ### Modern Python practices
 
-Aclaf embraces Python 3.12+ features and modern development practices:
+Aclaf supports Python 3.10 and above. The project is developed and tested against Python 3.14 and embraces modern development practices:
 
 - Comprehensive type hints checked during development with basedpyright and in CI with Mypy and Pyright
 - Dataclasses with slots for efficient, immutable value objects
@@ -195,7 +195,7 @@ If you want to explore the codebase and run tests locally:
 
 ### Prerequisites
 
-- Python 3.12 or higher
+- Python 3.10 or higher
 - [uv](https://docs.astral.sh/uv/) (Python package manager)
 - [just](https://github.com/casey/just) (command runner)
 - [pnpm](https://pnpm.io/) (Node.js package manager, for documentation tools)

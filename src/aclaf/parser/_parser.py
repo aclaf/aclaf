@@ -1,7 +1,8 @@
 import re
 from dataclasses import replace
 from itertools import chain
-from typing import TYPE_CHECKING, cast, final, override
+from typing import TYPE_CHECKING, cast, final
+from typing_extensions import override
 
 from ._base import BaseParser, ParsedOption, ParsedPositional, ParseResult
 from ._parameters import PositionalSpec
