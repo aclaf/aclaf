@@ -270,6 +270,32 @@ class TestAsyncDispatch:
 
         assert called == ["parent", "child"]
 
+    @pytest.mark.asyncio
+    async def test_async_command_returning_sync_value_raises_type_error(self):
+        def sync_handler():
+            return 42
+
+        cmd = RuntimeCommand(
+            name="test",
+            run_func=sync_handler,
+            converters=ConverterRegistry(),
+            validators=ParameterValidatorRegistry(),
+            is_async=True,
+        )
+
+        parse_result = ParseResult(command="test", options={}, positionals={})
+        ctx = Context(
+            command="test",
+            command_path=("test",),
+            parse_result=parse_result,
+            is_async=True,
+        )
+
+        with pytest.raises(
+            TypeError, match="Async command returned non-awaitable result"
+        ):
+            await cmd.dispatch_async(ctx)
+
 
 class TestSubcommandContextCreation:
 

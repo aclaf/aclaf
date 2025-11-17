@@ -1,6 +1,4 @@
 # pyright: reportPrivateUsage=false, reportDeprecated=false, reportAny=false
-from __future__ import annotations
-
 from typing import Annotated, TypedDict, Unpack
 
 import pytest
@@ -200,7 +198,7 @@ class TestComplexUnions:
         type1 = Annotated[int, Gt(0)]
         type2 = Annotated[str, Gt(5)]
         type3 = Annotated[float, Gt(0.0)]
-        annotation = Annotated[type1 | type2 | type3, Opt()]  # type: ignore[misc]
+        annotation = Annotated[type1 | type2 | type3, Opt()]  # pyright: ignore[reportOperatorIssue]
         param = CommandParameter.from_annotation(
             "value", annotation, AnnotationSource.BARE
         )
