@@ -10,8 +10,6 @@ from aclaf.parser import ParseResult
 
 if TYPE_CHECKING:
     from aclaf.console._basic import BasicConsole
-    from aclaf._conversion import ConverterRegistry
-    from aclaf._validation import ParameterValidatorRegistry
 
 
 class TestSyncDispatch:

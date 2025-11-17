@@ -29,11 +29,11 @@ T = TypeVar("T")
 K = TypeVar("K")
 V = TypeVar("V")
 
-# Non-generic converter function type - accepts ParsedParameterValue and
+# Non-generic converter function type - accepts ParsedParameterValue | None and
 # optional metadata, returns Any since we can't statically know the return
 # type at the registry level
 ConverterFunctionType: TypeAlias = Callable[
-    [ParsedParameterValue, tuple[BaseMetadata, ...] | None], Any
+    [ParsedParameterValue | None, tuple[BaseMetadata, ...] | None], Any
 ]
 
 
@@ -62,7 +62,9 @@ class ConverterRegistry:
     def register(
         self,
         type_: type[T],
-        converter: Callable[[ParsedParameterValue, tuple[BaseMetadata, ...] | None], T],
+        converter: Callable[
+            [ParsedParameterValue | None, tuple[BaseMetadata, ...] | None], T
+        ],
     ) -> None:
         """Register a converter function for a specific type.
 
@@ -93,7 +95,10 @@ class ConverterRegistry:
 
     def get_converter(  # noqa: PLR0911
         self, type_: Any
-    ) -> Callable[[ParsedParameterValue | None, tuple[BaseMetadata, ...] | None], Any] | None:
+    ) -> (
+        Callable[[ParsedParameterValue | None, tuple[BaseMetadata, ...] | None], Any]
+        | None
+    ):
         """Retrieve a converter function for the given type.
 
         This method checks for registered converters, protocol-based converters,
@@ -124,21 +129,19 @@ class ConverterRegistry:
 
                 # Create wrapper that merges Annotated metadata with passed metadata
                 def annotated_converter(
-                    value: ParsedParameterValue,
+                    value: ParsedParameterValue | None,
                     extra_metadata: tuple[BaseMetadata, ...] | None = None,
-                ) -> T:
+                ) -> Any:
                     # Merge Annotated metadata with passed metadata
-                    combined_metadata = metadata_from_type + (extra_metadata or ())
-                    return cast("T", base_converter(value, combined_metadata))
+                    combined_metadata: tuple[Any, ...] = metadata_from_type + (
+                        extra_metadata or ()
+                    )
+                    return base_converter(value, combined_metadata)
 
                 return annotated_converter
 
         if type_ in self._converters:
-            # We know this converter should return T, but it's stored as returning Any
-            return cast(
-                "Callable[[ParsedParameterValue, tuple[BaseMetadata, ...] | None], T]",
-                self._converters[type_],
-            )
+            return self._converters[type_]
 
         converter = self._try_enum_converter(type_)
         if converter is not None:
@@ -156,7 +159,10 @@ class ConverterRegistry:
 
     def _try_protocol_converter(
         self, type_: type[T]
-    ) -> Callable[[ParsedParameterValue, tuple[BaseMetadata, ...] | None], T] | None:
+    ) -> (
+        Callable[[ParsedParameterValue | None, tuple[BaseMetadata, ...] | None], T]
+        | None
+    ):
         """Attempt to create a converter for a type implementing ConvertibleProtocol.
 
         Args:
@@ -171,9 +177,11 @@ class ConverterRegistry:
                 return None
 
             def convert_protocol(
-                value: ParsedParameterValue,
+                value: ParsedParameterValue | None,
                 metadata: tuple[BaseMetadata, ...] | None = None,
             ) -> T:
+                if value is None:
+                    raise ConversionError(None, type_, "Value cannot be None")
                 # Call the protocol method - we know type_ has from_cli_value
                 # since we verified it's a ConvertibleProtocol subclass
                 result = type_.from_cli_value(value, metadata)
@@ -188,7 +196,10 @@ class ConverterRegistry:
 
     def _try_generic_converter(
         self, type_: type[T]
-    ) -> Callable[[ParsedParameterValue, tuple[BaseMetadata, ...] | None], T] | None:
+    ) -> (
+        Callable[[ParsedParameterValue | None, tuple[BaseMetadata, ...] | None], T]
+        | None
+    ):
         """Attempt to create a converter for a generic type.
 
         Handles Union types, sequence types (list, tuple, set, etc.), and mapping types.
@@ -226,7 +237,10 @@ class ConverterRegistry:
 
     def _try_enum_converter(
         self, type_: type[T]
-    ) -> Callable[[ParsedParameterValue, tuple[BaseMetadata, ...] | None], T] | None:
+    ) -> (
+        Callable[[ParsedParameterValue | None, tuple[BaseMetadata, ...] | None], T]
+        | None
+    ):
         try:
             if not issubclass(type_, Enum):
                 return None
@@ -234,9 +248,12 @@ class ConverterRegistry:
             return None
 
         def convert_enum(
-            value: ParsedParameterValue,
+            value: ParsedParameterValue | None,
             _metadata: tuple[BaseMetadata, ...] | None = None,
         ) -> T:
+            if value is None:
+                raise ConversionError(None, type_, "Value cannot be None")
+
             if isinstance(value, type_):  # Already the enum type
                 return value
 
@@ -358,7 +375,7 @@ class ConverterRegistry:
 
     def _make_union_converter(
         self, args: tuple[type[Any], ...]
-    ) -> Callable[[ParsedParameterValue, tuple[BaseMetadata, ...] | None], Any]:
+    ) -> Callable[[ParsedParameterValue | None, tuple[BaseMetadata, ...] | None], Any]:
         """Create a converter that tries each union member type in order.
 
         Args:
@@ -425,9 +442,11 @@ class ConverterRegistry:
         """
 
         def convert_sequence(  # noqa: PLR0911
-            value: ParsedParameterValue,
+            value: ParsedParameterValue | None,
             metadata: tuple[BaseMetadata, ...] | None = None,
         ) -> Any:
+            if value is None:
+                raise ConversionError(None, origin, "Cannot convert None to sequence")
             # Handle already-converted sequences
             if isinstance(value, (list, tuple)):
                 converted_elements = [
@@ -478,9 +497,11 @@ class ConverterRegistry:
         """
 
         def convert_mapping(
-            value: ParsedParameterValue,
+            value: ParsedParameterValue | None,
             metadata: tuple[BaseMetadata, ...] | None = None,
         ) -> dict[Any, Any]:
+            if value is None:
+                raise ConversionError(None, dict, "Cannot convert None to mapping")
             # Expect value to be a sequence of "key=value" strings
             if isinstance(value, str):
                 # Single "key=value" string
@@ -527,24 +548,28 @@ class ConverterRegistry:
 
 
 def convert_str(
-    value: ParsedParameterValue, _metadata: tuple[BaseMetadata, ...] | None = None
+    value: ParsedParameterValue | None,
+    _metadata: tuple[BaseMetadata, ...] | None = None,
 ) -> str:
     """Convert a parsed value to string.
 
     Args:
-        value: The value to convert
+        value: The value to convert (None returns empty string)
         _metadata: Unused metadata parameter
 
     Returns:
         The value as a string
     """
+    if value is None:
+        return ""
     if isinstance(value, str):
         return value
     return str(value)
 
 
 def convert_int(
-    value: ParsedParameterValue, _metadata: tuple[BaseMetadata, ...] | None = None
+    value: ParsedParameterValue | None,
+    _metadata: tuple[BaseMetadata, ...] | None = None,
 ) -> int:
     """Convert a parsed value to integer.
 
@@ -556,8 +581,11 @@ def convert_int(
         The value as an integer
 
     Raises:
-        ValueError: If the value cannot be converted to int
+        ValueError: If the value cannot be converted to int or is None
     """
+    if value is None:
+        msg = "Cannot convert None to int"
+        raise ValueError(msg)
     if isinstance(value, int):
         return value
     # Type ignore: ParsedParameterValue includes tuples, but converter registry
@@ -566,7 +594,8 @@ def convert_int(
 
 
 def convert_float(
-    value: ParsedParameterValue, _metadata: tuple[BaseMetadata, ...] | None = None
+    value: ParsedParameterValue | None,
+    _metadata: tuple[BaseMetadata, ...] | None = None,
 ) -> float:
     """Convert a parsed value to float.
 
@@ -578,8 +607,11 @@ def convert_float(
         The value as a float
 
     Raises:
-        ValueError: If the value cannot be converted to float
+        ValueError: If the value cannot be converted to float or is None
     """
+    if value is None:
+        msg = "Cannot convert None to float"
+        raise ValueError(msg)
     if isinstance(value, float):
         return value
     # Type ignore: ParsedParameterValue includes tuples, but converter registry
@@ -588,7 +620,8 @@ def convert_float(
 
 
 def convert_bool(
-    value: ParsedParameterValue, _metadata: tuple[BaseMetadata, ...] | None = None
+    value: ParsedParameterValue | None,
+    _metadata: tuple[BaseMetadata, ...] | None = None,
 ) -> bool:
     """Convert a parsed value to boolean.
 
@@ -604,8 +637,11 @@ def convert_bool(
         The value as a boolean
 
     Raises:
-        ValueError: If the value cannot be recognized as a boolean
+        ValueError: If the value cannot be recognized as a boolean or is None
     """
+    if value is None:
+        msg = "Cannot convert None to bool"
+        raise ValueError(msg)
     if isinstance(value, bool):
         return value
     if isinstance(value, int):
@@ -621,9 +657,11 @@ def convert_bool(
 
 
 def convert_path(
-    value: ParsedParameterValue,
+    value: ParsedParameterValue | None,
     _metadata: tuple[BaseMetadata, ...] | None = None,
 ) -> Path:
+    if value is None:
+        raise ConversionError(None, Path, "Cannot convert None to Path")
     if isinstance(value, Path):
         return value
     if isinstance(value, str):

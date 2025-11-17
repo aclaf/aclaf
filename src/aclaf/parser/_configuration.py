@@ -55,7 +55,7 @@ class ParserConfiguration:
             `-3.14`, `-1e5`). When enabled, arguments starting with `-` followed by
             a digit are treated as negative numbers if no matching short option
             exists. Options take precedence over negative number interpretation.
-            Default: `False`.
+            Default: `True`.
         case_insensitive_flags: Ignore case when matching boolean flags.
             Default: `False`.
         case_insensitive_options: Ignore case when matching option names.
@@ -93,7 +93,7 @@ class ParserConfiguration:
     allow_abbreviated_options: bool = False
     allow_aliases: bool = True
     allow_equals_for_flags: bool = False
-    allow_negative_numbers: bool = False
+    allow_negative_numbers: bool = True
     case_insensitive_flags: bool = False
     case_insensitive_options: bool = False
     case_insensitive_subcommands: bool = False

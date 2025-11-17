@@ -57,11 +57,11 @@ class DuplicateCommandError(AclafError):
 class ConversionError(AclafError):
     def __init__(
         self,
-        value: "ParsedParameterValue",
+        value: "ParsedParameterValue | None",
         target_type: type,
         reason: str | None = None,
     ) -> None:
-        self.value: ParsedParameterValue = value
+        self.value: ParsedParameterValue | None = value
         self.target_type: type = target_type
         self.reason: str | None = reason
         msg = f"Failed to convert value '{value}' to type '{target_type.__name__}'."

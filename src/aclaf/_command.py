@@ -17,7 +17,6 @@ from aclaf._validation import (
     ParameterValidatorRegistry,
     ValidatorRegistryKey,
 )
-from aclaf.console import Console
 from aclaf.logging import Logger, NullLogger
 
 from ._runtime import (
@@ -33,6 +32,8 @@ from .parser.utils import validate_command_name
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Sequence
+
+    from aclaf.console import Console
 
     from ._response import ResponderProtocol
     from ._runtime import CommandFunctionType
@@ -160,8 +161,6 @@ class Command:
         self, responders: dict[str, "ResponderProtocol"] | None = None
     ) -> "RuntimeCommand":
         run_func = self.run_func or (EMPTY_COMMAND_FUNCTION)
-        if self.is_async is None:
-            self.is_async = self._check_run_func_async()
 
         parameters = {
             name: param.to_runtime_parameter()

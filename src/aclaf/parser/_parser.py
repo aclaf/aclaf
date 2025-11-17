@@ -347,33 +347,49 @@ class Parser(BaseParser):
 
                 # region Short options
                 elif arg.startswith("-") and arg != "-":
-                    # Check for negative number (e.g., -5, -3.14)
-                    # Only treat as value if we're in a context that accepts positionals
-                    is_negative_number = (
-                        self.config.allow_negative_numbers
-                        and self._is_negative_number(arg)
-                        and bool(current_spec.positionals)
+                    # Check if should treat as positional (strict mode)
+                    should_treat_as_positional = (
+                        self._should_treat_option_as_positional(
+                            positionals_started, current_spec
+                        )
                     )
 
-                    if is_negative_number:
+                    if should_treat_as_positional:
                         positionals += (arg,)
                         position += 1
-                        positionals_started = True
                     else:
-                        # Check if should treat as positional
-                        should_treat_as_positional = (
-                            self._should_treat_option_as_positional(
-                                positionals_started, current_spec
-                            )
+                        # Try to parse as short option(s) first.
+                        # If fails and looks like negative number, treat as positional.
+                        arg_without_dash = arg[1:]
+                        next_args = args[position + 1 :]
+
+                        # Check if first character can be resolved as an option
+                        can_resolve_as_option = False
+                        if arg_without_dash:
+                            try:
+                                _ = current_spec.resolve_option(
+                                    arg_without_dash[0],
+                                    allow_abbreviations=self.config.allow_abbreviated_options,
+                                    case_insensitive=self.config.case_insensitive_flags,
+                                )
+                                can_resolve_as_option = True
+                            except UnknownOptionError:
+                                can_resolve_as_option = False
+
+                        # Check if this looks like a negative number
+                        is_negative_number = (
+                            self.config.allow_negative_numbers
+                            and self._is_negative_number(arg)
                         )
 
-                        if should_treat_as_positional:
+                        # Treat as positional if looks like negative number
+                        # and can't be resolved as option
+                        if is_negative_number and not can_resolve_as_option:
                             positionals += (arg,)
                             position += 1
+                            positionals_started = True
                         else:
                             # Parse as short option(s) - inlined
-                            arg_without_dash = arg[1:]
-                            next_args = args[position + 1 :]
 
                             # === CHARACTER-BY-CHARACTER PARSING ===
                             # Extract option specs and inline value

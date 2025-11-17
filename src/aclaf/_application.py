@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 
 class App(Command):
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         name: str | None = None,
         *,

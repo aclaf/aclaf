@@ -1,4 +1,3 @@
-from collections.abc import Callable
 from types import MappingProxyType
 from typing import TYPE_CHECKING
 
@@ -11,6 +10,7 @@ from aclaf.logging import NullLogger
 from aclaf.parser import Parser
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from unittest.mock import MagicMock
 
     from pytest_mock import MockerFixture

@@ -11,8 +11,6 @@ from aclaf import (
     RuntimeCommand,
     RuntimeParameter,
 )
-from aclaf.console import Console
-from aclaf.logging import Logger
 from aclaf.parser import (
     EXACTLY_ONE_ARITY,
     ONE_OR_MORE_ARITY,
@@ -37,6 +35,8 @@ if TYPE_CHECKING:
 
     from aclaf._context import ContextInput
     from aclaf._runtime import RuntimeCommandInput, RuntimeParameterInput
+    from aclaf.console import Console
+    from aclaf.logging import Logger
     from aclaf.parser._base import ParsedOption, ParsedPositional
 
 
@@ -316,8 +316,8 @@ def runtime_command(
 
 @pytest.fixture
 def context_factory(
-    console: Console,
-    logger: Logger,
+    console: "Console",
+    logger: "Logger",
     parser_result_factory: "Callable[..., ParseResult]",
 ) -> "Callable[..., Context]":
     def factory(**kwargs: Unpack["ContextInput"]) -> Context:

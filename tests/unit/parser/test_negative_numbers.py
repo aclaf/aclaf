@@ -36,13 +36,19 @@ class TestNegativeNumbersDisabled:
         result = parser.parse(["-3.14"])
         assert result.options["3"].value == ".14"
 
-    def test_default_behavior_is_disabled(self):
-        spec = CommandSpec(name="cmd")
+
+
+class TestNegativeNumbersDefaultBehavior:
+    def test_default_behavior_is_enabled(self):
+        spec = CommandSpec(
+            name="cmd",
+            positionals={"value": PositionalSpec("value", arity=EXACTLY_ONE_ARITY)},
+        )
         parser = Parser(spec)
 
-        # Should fail because -1 is treated as unknown option
-        with pytest.raises(UnknownOptionError):
-            _ = parser.parse(["-1"])
+        # Default should allow negative numbers
+        result = parser.parse(["-1"])
+        assert result.positionals["value"].value == "-1"
 
 
 class TestNegativeNumbersEnabled:
@@ -248,7 +254,7 @@ class TestNegativeNumberEdgeCases:
         result = parser.parse(["-o-5"])
         assert result.options["offset"].value == "-5"
 
-    def test_negative_number_not_in_value_context_fails(self):
+    def test_negative_number_without_explicit_positionals(self):
         spec = CommandSpec(
             name="cmd",
             options={
@@ -259,9 +265,10 @@ class TestNegativeNumberEdgeCases:
         )
         parser = Parser(spec, allow_negative_numbers=True)
 
-        # No positionals defined, -1 is not in value-consuming context
-        with pytest.raises(UnknownOptionError):
-            _ = parser.parse(["-1"])
+        # Even without explicit positionals, negative numbers should be accepted
+        # as implicit positional args when no matching option exists
+        result = parser.parse(["-1"])
+        assert result.positionals["args"].value == ("-1",)
 
     def test_large_negative_number(self):
         spec = CommandSpec(
