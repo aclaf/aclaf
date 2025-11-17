@@ -4,7 +4,7 @@ from aclaf._context import Context
 from aclaf.parser import ParseResult
 
 if TYPE_CHECKING:
-    from aclaf.console._basic import BasicConsole
+    from aclaf.console import Console
 
 
 class TestContextHierarchy:
@@ -97,13 +97,13 @@ class TestContextHierarchy:
 
         assert chain == ["leaf", "mid", "root"]
 
-    def test_console_inheritance(self, test_console: "BasicConsole") -> None:
+    def test_console_inheritance(self, console: "Console") -> None:
         root_result = ParseResult(command="root", options={}, positionals={})
         root_ctx = Context(
             command="root",
             command_path=("root",),
             parse_result=root_result,
-            console=test_console,
+            console=console,
         )
 
         child_result = ParseResult(command="child", options={}, positionals={})
@@ -112,11 +112,11 @@ class TestContextHierarchy:
             command_path=("root", "child"),
             parse_result=child_result,
             parent=root_ctx,
-            console=test_console,  # Should inherit same console
+            console=console,  # Should inherit same console
         )
 
-        assert root_ctx.console is test_console
-        assert child_ctx.console is test_console
+        assert root_ctx.console is console
+        assert child_ctx.console is console
         assert root_ctx.console is child_ctx.console
 
     def test_params_isolated_between_contexts(self):

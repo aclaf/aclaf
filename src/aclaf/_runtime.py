@@ -505,6 +505,11 @@ class RuntimeCommand:
             if value is None and parameter.is_required:
                 errors[name] = ("is required",)
                 continue
+
+            # Skip validation for None values (optional parameters)
+            if value is None:
+                continue
+
             value_errors: tuple[str, ...] | None = self.validators.validate(
                 value, raw, parameter.metadata
             )

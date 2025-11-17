@@ -92,8 +92,8 @@ class ConverterRegistry:
         del self._converters[type_]
 
     def get_converter(  # noqa: PLR0911
-        self, type_: type[T]
-    ) -> Callable[[ParsedParameterValue, tuple[BaseMetadata, ...] | None], T] | None:
+        self, type_: Any
+    ) -> Callable[[ParsedParameterValue | None, tuple[BaseMetadata, ...] | None], Any] | None:
         """Retrieve a converter function for the given type.
 
         This method checks for registered converters, protocol-based converters,
@@ -268,7 +268,7 @@ class ConverterRegistry:
 
         return convert_enum
 
-    def has_converter(self, type_: type[Any]) -> bool:
+    def has_converter(self, type_: Any) -> bool:
         """Check if a converter exists for the given type.
 
         Args:
@@ -281,10 +281,10 @@ class ConverterRegistry:
 
     def convert(
         self,
-        value: ParsedParameterValue,
-        target_type: type[T],
+        value: ParsedParameterValue | None,
+        target_type: Any,
         metadata: tuple[BaseMetadata, ...] | None = None,
-    ) -> T:
+    ) -> Any:
         """Convert a parsed parameter value to the target type.
 
         Args:
@@ -301,7 +301,8 @@ class ConverterRegistry:
         """
         converter = self.get_converter(target_type)
         if converter is None:
-            msg = f"No converter registered for type '{target_type.__name__}'."
+            type_name = getattr(target_type, '__name__', repr(target_type))
+            msg = f"No converter registered for type '{type_name}'."
             raise TypeError(msg)
 
         try:

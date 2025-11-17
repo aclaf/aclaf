@@ -13,6 +13,12 @@ Coverage areas:
 - Complex arity patterns including bounded ranges
 - Real-world CLI patterns (build tools, package managers, database CLIs)
 
+Demonstrates validation system integration with:
+- Thread/job counts (positive integers with upper bounds)
+- Percentage values (0-100 range)
+- Port numbers for database connections
+- Optimization levels (0-3 range)
+
 Contains 12 integration tests organized into 8 test classes. Each test is
 independent with inline CLI construction (no shared fixtures) to demonstrate
 isolated complex scenarios clearly and maintain complete independence between
@@ -33,6 +39,14 @@ from aclaf import App, Context
 from aclaf.console import MockConsole
 from aclaf.metadata import AtLeastOne, Collect, Flag, ZeroOrMore
 from aclaf.parser import ParserConfiguration
+from aclaf.validators import Interval
+
+# Type aliases for build tools and complex scenarios
+ThreadCount = Annotated[int, Interval(ge=1, le=128)]
+JobCount = Annotated[int, Interval(ge=1, le=64)]
+Percentage = Annotated[int, Interval(ge=0, le=100)]
+Port = Annotated[int, Interval(ge=1, le=65535)]
+OptimizationLevel = Annotated[int, Interval(ge=0, le=3)]
 
 
 class TestMultiLevelSubcommands:
@@ -94,7 +108,7 @@ class TestMultiLevelSubcommands:
 
 class TestOptionsPositionalsSubcommands:
     def test_all_features_together(self, console: MockConsole):
-        # Inline CLI construction - combining all three CLI features
+        # Inline CLI construction - combining all three CLI features with validation
         app = App("tool", console=console)
 
         @app.handler()
@@ -111,7 +125,7 @@ class TestOptionsPositionalsSubcommands:
         def process(  # pyright: ignore[reportUnusedFunction]
             input_file: str,
             files: Annotated[tuple[str, ...], AtLeastOne()],
-            threads: Annotated[str | None, "-t"] = None,
+            threads: Annotated[ThreadCount | None, "-t"] = None,
             output: Annotated[str | None, "-o"] = None,
         ):
             console.print(f"[process] input={input_file}")
@@ -204,6 +218,7 @@ class TestAccumulationWithComplexOptions:
 
     def test_multiple_accumulation_modes(self, console: MockConsole):
         # Inline CLI construction - testing COUNT, COLLECT, and default (last-wins)
+        # with validated optimization level
         app = App("compiler", console=console)
 
         @app.command()
@@ -211,7 +226,7 @@ class TestAccumulationWithComplexOptions:
             define: Annotated[tuple[str, ...], "-D", Collect()] = (),
             include: Annotated[tuple[str, ...], "-I", Collect()] = (),
             verbose: Annotated[int, "-v", Flag(count=True)] = 0,
-            optimization: Annotated[str, "-O"] = "0",
+            optimization: Annotated[OptimizationLevel, "-O"] = 0,
         ):
             console.print(f"[compiler] define={define!r}")
             console.print(f"[compiler] include={include!r}")
@@ -333,14 +348,14 @@ class TestComplexArityPatterns:
 
 class TestRealWorldBuildTool:
     def test_make_like_cli(self, console: MockConsole):
-        # Inline CLI construction - make-like build tool pattern
+        # Inline CLI construction - make-like build tool with job count validation
         app = App("build", console=console)
 
         @app.command()
         def build(  # pyright: ignore[reportUnusedFunction]
             targets: Annotated[tuple[str, ...], ZeroOrMore()] = (),
             file: Annotated[str | None, "-f"] = None,
-            jobs: Annotated[str | None, "-j"] = None,
+            jobs: Annotated[JobCount | None, "-j"] = None,
             keep_going: Annotated[bool, "-k"] = False,
         ):
             if file:
@@ -417,14 +432,14 @@ class TestPackageManagerPatterns:
 
 class TestDatabaseCLIPatterns:
     def test_psql_like_connection(self, console: MockConsole):
-        # Inline CLI construction - database connection CLI pattern
+        # Inline CLI construction - database connection CLI pattern with port validation
         app = App("db", console=console)
 
         @app.command()
         def db(  # pyright: ignore[reportUnusedFunction]
             command: Annotated[tuple[str, ...], ZeroOrMore()] = (),
             host: Annotated[str | None, "-h"] = None,
-            port: Annotated[str | None, "-p"] = None,
+            port: Annotated[Port | None, "-p"] = None,
             username: Annotated[str | None, "-U"] = None,
             database: Annotated[str | None, "-d"] = None,
         ):

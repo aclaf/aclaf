@@ -6,7 +6,7 @@ import pytest
 
 from aclaf import EMPTY_COMMAND_FUNCTION, RuntimeCommand, RuntimeParameter
 from aclaf._errors import ErrorConfiguration
-from aclaf._runtime import default_respond
+from aclaf._runtime import ParameterKind, default_respond
 from aclaf.logging import NullLogger
 from aclaf.parser import Parser
 
@@ -18,12 +18,16 @@ if TYPE_CHECKING:
 
 @pytest.fixture
 def mock_option(mocker: "MockerFixture") -> "MagicMock":
-    return mocker.Mock(spec=["to_option_spec"])
+    mock = mocker.Mock(spec=["to_option_spec", "kind"])
+    mock.kind = ParameterKind.OPTION
+    return mock
 
 
 @pytest.fixture
 def mock_positional(mocker: "MockerFixture") -> "MagicMock":
-    return mocker.Mock(spec=["to_positional_spec"])
+    mock = mocker.Mock(spec=["to_positional_spec", "kind"])
+    mock.kind = ParameterKind.POSITIONAL
+    return mock
 
 
 class TestRuntimeCommand:
@@ -40,18 +44,18 @@ class TestRuntimeCommand:
         assert cmd.aliases == ()
         assert cmd.console_param is None
         assert cmd.context_param is None
-        assert cmd.error_config is ErrorConfiguration
-        assert cmd.parameters is MappingProxyType
+        assert isinstance(cmd.error_config, ErrorConfiguration)
+        assert isinstance(cmd.parameters, MappingProxyType)
         assert cmd.parameters == {}
         assert cmd.is_async is False
-        assert cmd.logger is NullLogger
+        assert isinstance(cmd.logger, NullLogger)
         assert cmd.logger_param is None
         assert cmd.parser_cls is Parser
         assert cmd.parser_config is None
         assert cmd.respond is default_respond
-        assert cmd.responders is MappingProxyType
+        assert isinstance(cmd.responders, MappingProxyType)
         assert cmd.responders == {}
-        assert cmd.subcommands is MappingProxyType
+        assert isinstance(cmd.subcommands, MappingProxyType)
         assert cmd.subcommands == {}
 
     def test_command_with_all_fields(

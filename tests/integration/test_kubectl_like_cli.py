@@ -4,11 +4,17 @@ This module tests realistic kubectl-style command structures with resource type 
 patterns, namespace flags, output formats, and various argument patterns using the
 high-level App API.
 
-Contains 30 integration tests organized into 8 test classes covering:
+Contains integration tests organized into test classes covering:
 - Resource operations (get, describe, delete, apply)
 - Pod interaction (logs, exec)
 - Global flags (namespace, context, kubeconfig)
 - Complex multi-command scenarios
+
+Demonstrates validation system integration with:
+- Replica counts (positive integers, typically 0-10000)
+- Timeout seconds (positive integers)
+- Non-empty resource names
+- Tail line counts (positive integers)
 
 Note: This file intentionally uses patterns that trigger linting warnings:
 - FBT002: Boolean arguments are part of the CLI API being tested
@@ -26,7 +32,16 @@ import pytest
 
 from aclaf import App
 from aclaf.console import MockConsole
+from aclaf.exceptions import ValidationError
 from aclaf.metadata import AtLeastOne, Collect, Opt, ZeroOrMore
+from aclaf.types import PositiveInt
+from aclaf.validators import Interval, MinLen
+
+# Type aliases for Kubernetes-specific constraints
+ReplicaCount = Annotated[int, Interval(ge=0, le=10000)]
+TimeoutSeconds = PositiveInt
+TailLines = PositiveInt
+NonEmptyResourceName = Annotated[str, MinLen(1)]
 
 
 @pytest.fixture
@@ -310,6 +325,29 @@ class TestKubectlLogsCommand:
         output = console.get_output()
         assert "[logs] follow=True" in output
 
+    def test_logs_with_tail_valid(
+        self, console: MockConsole):
+        """Test logs command with valid tail line count."""
+        app = App("kubectl", console=console)
+
+        @app.command()
+        def logs(
+            pod_name: NonEmptyResourceName,
+            tail: Annotated[TailLines | None, Opt()] = None,
+            follow: Annotated[bool, "-f"] = False,
+        ):  # pyright: ignore[reportUnusedFunction]
+            console.print(f"[logs] pod_name={pod_name}")
+            if tail:
+                console.print(f"[logs] tail={tail}")
+            if follow:
+                console.print("[logs] follow=True")
+
+        app(["logs", "my-pod", "--tail", "100", "-f"])
+
+        output = console.get_output()
+        assert "[logs] pod_name=my-pod" in output
+        assert "[logs] tail=100" in output
+        assert "[logs] follow=True" in output
 
 class TestKubectlExecCommand:
     def test_exec_basic(self, kubectl_exec_cli: App, console: MockConsole):
@@ -431,6 +469,180 @@ class TestKubectlGlobalFlags:
         assert "[kubectl] namespace=kube-system" in output
         assert "[kubectl] context=production" in output
         assert "[get] output=yaml" in output
+
+
+class TestKubectlValidationFailures:
+    """Test validation failures for kubectl command parameters."""
+
+    def test_scale_with_invalid_replica_count_negative(self, console: MockConsole):
+        """Test replica count validation rejects negative values."""
+        app = App("kubectl", console=console)
+
+        @app.command()
+        def scale(
+            resource_type: NonEmptyResourceName,
+            resource_name: NonEmptyResourceName,
+            replicas: Annotated[ReplicaCount, Opt()],
+        ):  # pyright: ignore[reportUnusedFunction]
+            console.print(f"[scale] resource_type={resource_type}")
+            console.print(f"[scale] resource_name={resource_name}")
+            console.print(f"[scale] replicas={replicas}")
+
+        with pytest.raises(ValidationError) as exc_info:
+            app(["scale", "deployment", "my-app", "--replicas", "-1"])
+
+        assert "greater than or equal to 0" in str(exc_info.value).lower()
+
+    def test_scale_with_invalid_replica_count_exceeds_max(self, console: MockConsole):
+        """Test replica count validation rejects values exceeding 10000."""
+        app = App("kubectl", console=console)
+
+        @app.command()
+        def scale(
+            resource_type: NonEmptyResourceName,
+            resource_name: NonEmptyResourceName,
+            replicas: Annotated[ReplicaCount, Opt()],
+        ):  # pyright: ignore[reportUnusedFunction]
+            console.print(f"[scale] resource_type={resource_type}")
+            console.print(f"[scale] resource_name={resource_name}")
+            console.print(f"[scale] replicas={replicas}")
+
+        with pytest.raises(ValidationError) as exc_info:
+            app(["scale", "deployment", "my-app", "--replicas", "10001"])
+
+        assert "10000" in str(exc_info.value)
+
+    def test_wait_with_invalid_timeout_zero(self, console: MockConsole):
+        """Test timeout validation rejects zero."""
+        app = App("kubectl", console=console)
+
+        @app.command()
+        def wait(
+            resource_type: NonEmptyResourceName,
+            resource_name: NonEmptyResourceName,
+            for_condition: Annotated[str, "--for"],
+            timeout: Annotated[TimeoutSeconds | None, Opt()] = None,
+        ):  # pyright: ignore[reportUnusedFunction]
+            console.print(f"[wait] resource_type={resource_type}")
+            console.print(f"[wait] resource_name={resource_name}")
+            console.print(f"[wait] for_condition={for_condition}")
+            if timeout:
+                console.print(f"[wait] timeout={timeout}")
+
+        with pytest.raises(ValidationError) as exc_info:
+            app([
+                "wait",
+                "pod",
+                "my-pod",
+                "--for",
+                "condition=Ready",
+                "--timeout",
+                "0",
+            ])
+
+        assert "must be greater than 0" in str(exc_info.value).lower()
+
+    def test_wait_with_invalid_timeout_negative(self, console: MockConsole):
+        """Test timeout validation rejects negative values."""
+        app = App("kubectl", console=console)
+
+        @app.command()
+        def wait(
+            resource_type: NonEmptyResourceName,
+            resource_name: NonEmptyResourceName,
+            for_condition: Annotated[str, "--for"],
+            timeout: Annotated[TimeoutSeconds | None, Opt()] = None,
+        ):  # pyright: ignore[reportUnusedFunction]
+            console.print(f"[wait] resource_type={resource_type}")
+            console.print(f"[wait] resource_name={resource_name}")
+            console.print(f"[wait] for_condition={for_condition}")
+            if timeout:
+                console.print(f"[wait] timeout={timeout}")
+
+        with pytest.raises(ValidationError) as exc_info:
+            app([
+                "wait",
+                "pod",
+                "my-pod",
+                "--for",
+                "condition=Ready",
+                "--timeout",
+                "-5",
+            ])
+
+        assert "must be greater than 0" in str(exc_info.value).lower()
+
+    def test_logs_with_invalid_tail_zero(self, console: MockConsole):
+        """Test tail lines validation rejects zero."""
+        app = App("kubectl", console=console)
+
+        @app.command()
+        def logs(
+            pod_name: NonEmptyResourceName,
+            tail: Annotated[TailLines | None, Opt()] = None,
+        ):  # pyright: ignore[reportUnusedFunction]
+            console.print(f"[logs] pod_name={pod_name}")
+            if tail:
+                console.print(f"[logs] tail={tail}")
+
+        with pytest.raises(ValidationError) as exc_info:
+            app(["logs", "my-pod", "--tail", "0"])
+
+        assert "must be greater than 0" in str(exc_info.value).lower()
+
+    def test_logs_with_invalid_tail_negative(self, console: MockConsole):
+        """Test tail lines validation rejects negative values."""
+        app = App("kubectl", console=console)
+
+        @app.command()
+        def logs(
+            pod_name: NonEmptyResourceName,
+            tail: Annotated[TailLines | None, Opt()] = None,
+        ):  # pyright: ignore[reportUnusedFunction]
+            console.print(f"[logs] pod_name={pod_name}")
+            if tail:
+                console.print(f"[logs] tail={tail}")
+
+        with pytest.raises(ValidationError) as exc_info:
+            app(["logs", "my-pod", "--tail", "-10"])
+
+        assert "must be greater than 0" in str(exc_info.value).lower()
+
+    def test_describe_with_empty_resource_name(self, console: MockConsole):
+        """Test resource name validation rejects empty string."""
+        app = App("kubectl", console=console)
+
+        @app.command()
+        def describe(
+            resource_type: NonEmptyResourceName,
+            resource_name: NonEmptyResourceName,
+        ):  # pyright: ignore[reportUnusedFunction]
+            console.print(f"[describe] resource_type={resource_type}")
+            console.print(f"[describe] resource_name={resource_name}")
+
+        with pytest.raises(ValidationError) as exc_info:
+            app(["describe", "pod", ""])
+
+        assert "at least 1" in str(exc_info.value).lower()
+
+    def test_scale_with_empty_resource_name(self, console: MockConsole):
+        """Test resource name validation rejects empty string in scale command."""
+        app = App("kubectl", console=console)
+
+        @app.command()
+        def scale(
+            resource_type: NonEmptyResourceName,
+            resource_name: NonEmptyResourceName,
+            replicas: Annotated[ReplicaCount, Opt()],
+        ):  # pyright: ignore[reportUnusedFunction]
+            console.print(f"[scale] resource_type={resource_type}")
+            console.print(f"[scale] resource_name={resource_name}")
+            console.print(f"[scale] replicas={replicas}")
+
+        with pytest.raises(ValidationError) as exc_info:
+            app(["scale", "deployment", "", "--replicas", "3"])
+
+        assert "at least 1" in str(exc_info.value).lower()
 
 
 class TestComplexKubectlScenarios:
@@ -646,3 +858,91 @@ class TestComplexKubectlScenarios:
         assert "[get] output=json" in output
         assert "[get] watch=True" in output
         assert "[get] resource_type=pods" in output
+
+
+class TestKubectlScaleCommand:
+    def test_scale_with_replicas_valid(
+        self, console: MockConsole):
+        """Test scaling with valid replica count."""
+        app = App("kubectl", console=console)
+
+        @app.command()
+        def scale(
+            resource_type: NonEmptyResourceName,
+            resource_name: NonEmptyResourceName,
+            replicas: Annotated[ReplicaCount, Opt()],
+        ):  # pyright: ignore[reportUnusedFunction]
+            console.print(f"[scale] resource_type={resource_type}")
+            console.print(f"[scale] resource_name={resource_name}")
+            console.print(f"[scale] replicas={replicas}")
+
+        app(["scale", "deployment", "my-app", "--replicas", "3"])
+
+        output = console.get_output()
+        assert "[scale] resource_type=deployment" in output
+        assert "[scale] resource_name=my-app" in output
+        assert "[scale] replicas=3" in output
+
+class TestKubectlWaitCommand:
+    def test_wait_with_timeout_valid(
+        self, console: MockConsole):
+        """Test wait command with valid timeout."""
+        app = App("kubectl", console=console)
+
+        @app.command()
+        def wait(
+            resource_type: NonEmptyResourceName,
+            resource_name: NonEmptyResourceName,
+            for_condition: Annotated[str, "--for"],
+            timeout: Annotated[TimeoutSeconds | None, Opt()] = None,
+        ):  # pyright: ignore[reportUnusedFunction]
+            console.print(f"[wait] resource_type={resource_type}")
+            console.print(f"[wait] resource_name={resource_name}")
+            console.print(f"[wait] for_condition={for_condition}")
+            if timeout:
+                console.print(f"[wait] timeout={timeout}")
+
+        app([
+            "wait",
+            "pod",
+            "my-pod",
+            "--for",
+            "condition=Ready",
+            "--timeout",
+            "300",
+        ])
+
+        output = console.get_output()
+        assert "[wait] resource_type=pod" in output
+        assert "[wait] resource_name=my-pod" in output
+        assert "[wait] for_condition=condition=Ready" in output
+        assert "[wait] timeout=300" in output
+
+class TestKubectlTopCommand:
+    def test_top_pods_with_validated_names(
+        self, console: MockConsole):
+        """Test top command with validated resource names."""
+        app = App("kubectl", console=console)
+
+        @app.command()
+        def top():
+            console.print("[top] invoked")
+
+        @top.command()
+        def pods(
+            pod_names: Annotated[tuple[NonEmptyResourceName, ...], ZeroOrMore()] = (),
+            containers: Annotated[bool, Opt()] = False,
+        ):  # pyright: ignore[reportUnusedFunction]
+            console.print("[top pods] invoked")
+            if pod_names:
+                console.print(f"[top pods] pod_names={pod_names!r}")
+            if containers:
+                console.print("[top pods] containers=True")
+
+        app(["top", "pods", "pod1", "pod2", "--containers"])
+
+        output = console.get_output()
+        assert "[top] invoked" in output
+        assert "[top pods] invoked" in output
+        assert "[top pods] pod_names=('pod1', 'pod2')" in output
+        assert "[top pods] containers=True" in output

@@ -3,6 +3,11 @@
 This module tests realistic Git-style command structures with nested subcommands,
 complex option combinations, and various argument patterns using the high-level App API.
 
+Demonstrates validation system integration with:
+- Commit count limits (positive integers)
+- Clone depth values (positive integers)
+- Verbosity levels (0-5 range)
+
 Note: This file intentionally uses patterns that trigger linting warnings:
 - FBT001/FBT002: Boolean arguments are part of the CLI API being tested
 - A002: Parameter names like 'all' shadow builtins but match actual git CLI patterns
@@ -16,7 +21,15 @@ import pytest
 
 from aclaf import App
 from aclaf.console import MockConsole
-from aclaf.metadata import AtLeastOne, Flag
+from aclaf.exceptions import ValidationError
+from aclaf.metadata import AtLeastOne, Flag, Opt
+from aclaf.types import PositiveInt
+from aclaf.validators import Interval
+
+# Type aliases for Git-specific constraints
+CommitCount = PositiveInt
+CloneDepth = PositiveInt
+VerbosityLevel = Annotated[int, Interval(ge=0, le=5)]
 
 
 @pytest.fixture
@@ -41,7 +54,7 @@ def git_cli(console: MockConsole) -> App:
         oneline: bool = False,
         graph: bool = False,
         all: bool = False,
-        max_count: Annotated[str | None, "-n"] = None,
+        max_count: Annotated[CommitCount | None, "-n"] = None,
     ):
         if oneline:
             console.print("[log] oneline=True")
@@ -123,12 +136,11 @@ class TestGitLogCommand:
         assert "[log] graph=True" in output
         assert "[log] all=True" in output
 
-    def test_log_with_limit(self, git_cli: App, console: MockConsole):
+    def test_log_with_limit_valid(self, git_cli: App, console: MockConsole):
         git_cli(["log", "-n", "10"])
 
         output = console.get_output()
         assert "[log] max_count=10" in output
-
 
 class TestGitBranchCommand:
     def test_branch_list(self, git_cli: App, console: MockConsole):
@@ -222,6 +234,113 @@ class TestGitAddCommand:
         assert "[add] files=()" in output
 
 
+class TestGitValidationFailures:
+    """Test validation failures for git command parameters."""
+
+    def test_clone_with_invalid_depth_zero(self, console: MockConsole):
+        """Test clone depth validation rejects zero."""
+        app = App("git", console=console)
+
+        @app.command()
+        def clone(
+            repository: str,
+            depth: Annotated[CloneDepth | None, Opt()] = None,
+        ):  # pyright: ignore[reportUnusedFunction]
+            console.print(f"[clone] repository={repository}")
+            if depth:
+                console.print(f"[clone] depth={depth}")
+
+        with pytest.raises(ValidationError) as exc_info:
+            app(["clone", "https://github.com/user/repo.git", "--depth", "0"])
+
+        assert "must be greater than 0" in str(exc_info.value).lower()
+
+    def test_clone_with_invalid_depth_negative(self, console: MockConsole):
+        """Test clone depth validation rejects negative values."""
+        app = App("git", console=console)
+
+        @app.command()
+        def clone(
+            repository: str,
+            depth: Annotated[CloneDepth | None, Opt()] = None,
+        ):  # pyright: ignore[reportUnusedFunction]
+            console.print(f"[clone] repository={repository}")
+            if depth:
+                console.print(f"[clone] depth={depth}")
+
+        with pytest.raises(ValidationError) as exc_info:
+            app(["clone", "https://github.com/user/repo.git", "--depth", "-1"])
+
+        assert "must be greater than 0" in str(exc_info.value).lower()
+
+    def test_log_with_invalid_max_count_zero(self, console: MockConsole):
+        """Test log max_count validation rejects zero."""
+        app = App("git", console=console)
+
+        @app.command()
+        def log(
+            max_count: Annotated[CommitCount | None, "-n"] = None,
+        ):  # pyright: ignore[reportUnusedFunction]
+            if max_count:
+                console.print(f"[log] max_count={max_count}")
+
+        with pytest.raises(ValidationError) as exc_info:
+            app(["log", "-n", "0"])
+
+        assert "must be greater than 0" in str(exc_info.value).lower()
+
+    def test_log_with_invalid_max_count_negative(self, console: MockConsole):
+        """Test log max_count validation rejects negative values."""
+        app = App("git", console=console)
+
+        @app.command()
+        def log(
+            max_count: Annotated[CommitCount | None, "-n"] = None,
+        ):  # pyright: ignore[reportUnusedFunction]
+            if max_count:
+                console.print(f"[log] max_count={max_count}")
+
+        with pytest.raises(ValidationError) as exc_info:
+            app(["log", "-n", "-5"])
+
+        assert "must be greater than 0" in str(exc_info.value).lower()
+
+    def test_fetch_with_invalid_depth_zero(self, console: MockConsole):
+        """Test fetch depth validation rejects zero."""
+        app = App("git", console=console)
+
+        @app.command()
+        def fetch(
+            remotes: tuple[str, ...] = (),
+            depth: Annotated[CloneDepth | None, Opt()] = None,
+        ):  # pyright: ignore[reportUnusedFunction]
+            if remotes:
+                console.print(f"[fetch] remotes={remotes!r}")
+            if depth:
+                console.print(f"[fetch] depth={depth}")
+
+        with pytest.raises(ValidationError) as exc_info:
+            app(["fetch", "origin", "--depth", "0"])
+
+        assert "must be greater than 0" in str(exc_info.value).lower()
+
+    def test_shortlog_with_invalid_max_count_zero(self, console: MockConsole):
+        """Test shortlog max_count validation rejects zero."""
+        app = App("git", console=console)
+
+        @app.command()
+        def shortlog(
+            max_count: Annotated[CommitCount | None, "-n"] = None,
+        ):  # pyright: ignore[reportUnusedFunction]
+            if max_count:
+                console.print(f"[shortlog] max_count={max_count}")
+
+        with pytest.raises(ValidationError) as exc_info:
+            app(["shortlog", "-n", "0"])
+
+        assert "must be greater than 0" in str(exc_info.value).lower()
+
+
 class TestComplexGitScenarios:
     def test_complete_git_cli(self, console: MockConsole):
         app = App("git", console=console)
@@ -287,3 +406,77 @@ class TestComplexGitScenarios:
         output = console.get_output()
         assert "[git] verbose=2" in output
         assert "[status] short=True" in output
+
+
+class TestGitCloneCommand:
+    def test_clone_with_depth_valid(
+        self, console: MockConsole):
+        """Test clone command with valid depth."""
+        app = App("git", console=console)
+
+        @app.command()
+        def clone(
+            repository: str,
+            depth: Annotated[CloneDepth | None, Opt()] = None,
+        ):  # pyright: ignore[reportUnusedFunction]
+            console.print(f"[clone] repository={repository}")
+            if depth:
+                console.print(f"[clone] depth={depth}")
+
+        app(["clone", "https://github.com/user/repo.git", "--depth", "1"])
+
+        output = console.get_output()
+        assert "[clone] repository=https://github.com/user/repo.git" in output
+        assert "[clone] depth=1" in output
+
+class TestGitFetchCommand:
+    def test_fetch_with_depth_valid(
+        self, console: MockConsole):
+        """Test fetch command with valid depth."""
+        app = App("git", console=console)
+
+        @app.command()
+        def fetch(
+            remotes: tuple[str, ...] = (),
+            depth: Annotated[CloneDepth | None, Opt()] = None,
+            prune: Annotated[bool, "-p"] = False,
+        ):  # pyright: ignore[reportUnusedFunction]
+            if remotes:
+                console.print(f"[fetch] remotes={remotes!r}")
+            if depth:
+                console.print(f"[fetch] depth={depth}")
+            if prune:
+                console.print("[fetch] prune=True")
+
+        app(["fetch", "origin", "--depth", "50", "-p"])
+
+        output = console.get_output()
+        assert "[fetch] remotes=('origin',)" in output
+        assert "[fetch] depth=50" in output
+        assert "[fetch] prune=True" in output
+
+class TestGitShortlogCommand:
+    def test_shortlog_with_count_valid(
+        self, console: MockConsole):
+        """Test shortlog command with valid commit count."""
+        app = App("git", console=console)
+
+        @app.command()
+        def shortlog(
+            max_count: Annotated[CommitCount | None, "-n"] = None,
+            summary: Annotated[bool, "-s"] = False,
+            numbered: Annotated[bool, Opt()] = False,
+        ):  # pyright: ignore[reportUnusedFunction]
+            if max_count:
+                console.print(f"[shortlog] max_count={max_count}")
+            if summary:
+                console.print("[shortlog] summary=True")
+            if numbered:
+                console.print("[shortlog] numbered=True")
+
+        app(["shortlog", "-n", "25", "-s", "--numbered"])
+
+        output = console.get_output()
+        assert "[shortlog] max_count=25" in output
+        assert "[shortlog] summary=True" in output
+        assert "[shortlog] numbered=True" in output

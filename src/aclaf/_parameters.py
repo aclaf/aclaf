@@ -2,7 +2,15 @@ import inspect
 from dataclasses import dataclass, field
 from inspect import Parameter as FunctionParameter
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Any, TypedDict, Unpack, get_args, get_origin
+from typing import (
+    TYPE_CHECKING,
+    Annotated,
+    Any,
+    TypedDict,
+    Unpack,
+    get_args,
+    get_origin,
+)
 
 from annotated_types import BaseMetadata
 from typing_inspection import typing_objects
@@ -61,6 +69,39 @@ class SpecialParameters(TypedDict, total=False):
     context: str
     console: str
     logger: str
+
+
+def _extract_annotated_metadata(annotation: Any) -> list[MetadataType]:  # pyright: ignore[reportExplicitAny]
+    """Extract metadata from Annotated types, recursively handling nested annotations.
+
+    This handles cases like:
+    - Annotated[int, Gt(0)] -> [Gt(0)]
+    - Annotated[PositiveInt, Opt()] -> [Opt(), Gt(0)]
+    - Annotated[PositiveInt | None, Opt()] -> [Opt(), Gt(0)]
+    """
+    metadata: list[MetadataType] = []
+    origin = get_origin(annotation)
+
+    if origin is not None and origin is Annotated:
+        args = get_args(annotation)
+        if len(args) > 1:
+            # args[0] is base type, args[1:] is metadata
+            metadata.extend(args[1:])
+
+            # Recursively extract from base type if it's also Annotated
+            # or contains Annotated types (e.g., in unions)
+            base_type = args[0]
+            base_origin = get_origin(base_type)
+            if base_origin is Annotated:
+                # Direct Annotated type
+                metadata.extend(_extract_annotated_metadata(base_type))
+            elif base_origin is not None:
+                # Could be a Union or other generic - check args
+                for type_arg in get_args(base_type):
+                    if get_origin(type_arg) is Annotated:
+                        metadata.extend(_extract_annotated_metadata(type_arg))
+
+    return metadata
 
 
 @dataclass(slots=True, kw_only=True)
@@ -146,8 +187,17 @@ class CommandParameter(Parameter):
         source: AnnotationSource,
         default: "ParameterValueType | None" = None,
     ) -> "CommandParameter":
+        # Extract metadata from Annotated wrapper BEFORE unpacking type aliases
+        # Preserves metadata from type aliases like PositiveInt
+        metadata_from_annotated = _extract_annotated_metadata(annotation)
+
+        # Inspect annotation (may unpack type aliases)
         ann = CommandParameter._inspect_annotation(name, annotation, source)
-        metadata: list[MetadataType] = flatten_metadata(ann.metadata)
+
+        # Flatten and combine metadata from both sources
+        metadata_from_inspection = flatten_metadata(ann.metadata)
+        metadata = metadata_from_annotated + metadata_from_inspection
+
         type_expr = CommandParameter._get_type(name, ann)  # pyright: ignore[reportAny]
 
         attrs: CommandParameterInput = {
@@ -180,10 +230,20 @@ class CommandParameter(Parameter):
         annotation: Any,  # pyright: ignore[reportExplicitAny, reportAny]
     ) -> "CommandParameter":
         kind = func_parameter.kind
+
+        # Extract metadata from Annotated wrapper BEFORE unpacking type aliases
+        # Preserves metadata from type aliases like PositiveInt
+        metadata_from_annotated = _extract_annotated_metadata(annotation)
+
+        # Inspect annotation (may unpack type aliases)
         ann = CommandParameter._inspect_annotation(
             func_parameter.name, annotation, AnnotationSource.FUNCTION
         )
-        metadata = flatten_metadata(ann.metadata)
+
+        # Flatten and combine metadata from both sources
+        metadata_from_inspection = flatten_metadata(ann.metadata)
+        metadata = metadata_from_annotated + metadata_from_inspection
+
         default = func_parameter.default  # pyright: ignore[reportAny]
         type_expr = CommandParameter._get_type(func_parameter.name, ann)  # pyright: ignore[reportAny]
 

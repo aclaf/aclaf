@@ -4,9 +4,8 @@ from aclaf import Context, ParameterSource, ParameterSourceMapping
 from aclaf.parser import ParseResult
 
 if TYPE_CHECKING:
-    from unittest.mock import MagicMock
-
     from aclaf import ParameterValueType
+    from aclaf.console import Console
 
 
 class TestContextCreation:
@@ -20,9 +19,9 @@ class TestContextCreation:
         assert ctx.parameter_sources == {}
         assert ctx.parent is None
         assert ctx.is_async is False
-        assert ctx.console is None
+        assert ctx.console is not None  # Context now defaults to DefaultConsole
 
-    def test_context_with_all_fields(self, test_console: "MagicMock") -> None:
+    def test_context_with_all_fields(self, console: "Console") -> None:
         parent_result = ParseResult(command="parent", options={}, positionals={})
         parent_ctx = Context(
             command="parent", command_path=("parent",), parse_result=parent_result
@@ -42,7 +41,7 @@ class TestContextCreation:
             parameter_sources=parameter_sources,
             parent=parent_ctx,
             is_async=True,
-            console=test_console,
+            console=console,
         )
 
         assert ctx.command == "child"
@@ -52,7 +51,7 @@ class TestContextCreation:
         assert ctx.parameter_sources == parameter_sources
         assert ctx.parent is parent_ctx
         assert ctx.is_async is True
-        assert ctx.console is test_console
+        assert ctx.console is console
 
     def test_is_root_true_without_parent(self):
         parse_result = ParseResult(command="test", options={}, positionals={})

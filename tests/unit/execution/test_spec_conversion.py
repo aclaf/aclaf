@@ -1,13 +1,20 @@
 
 from aclaf import EMPTY_COMMAND_FUNCTION
+from aclaf._conversion import ConverterRegistry
 from aclaf._runtime import RuntimeCommand
+from aclaf._validation import ParameterValidatorRegistry
 from aclaf.parser import CommandSpec
 
 
 class TestCommandSpecConversion:
 
     def test_minimal_command_to_spec(self):
-        cmd = RuntimeCommand(name="test", run_func=EMPTY_COMMAND_FUNCTION)
+        cmd = RuntimeCommand(
+            name="test",
+            run_func=EMPTY_COMMAND_FUNCTION,
+            converters=ConverterRegistry(),
+            validators=ParameterValidatorRegistry(),
+        )
         spec = cmd.to_command_spec()
 
         assert isinstance(spec, CommandSpec)
@@ -21,6 +28,8 @@ class TestCommandSpecConversion:
         cmd = RuntimeCommand(
             name="test",
             run_func=EMPTY_COMMAND_FUNCTION,
+            converters=ConverterRegistry(),
+            validators=ParameterValidatorRegistry(),
             aliases=("t", "tst"),
         )
         spec = cmd.to_command_spec()
@@ -28,7 +37,12 @@ class TestCommandSpecConversion:
         assert spec.aliases == frozenset(["t", "tst"])
 
     def test_command_spec_is_cached(self):
-        cmd = RuntimeCommand(name="test", run_func=EMPTY_COMMAND_FUNCTION)
+        cmd = RuntimeCommand(
+            name="test",
+            run_func=EMPTY_COMMAND_FUNCTION,
+            converters=ConverterRegistry(),
+            validators=ParameterValidatorRegistry(),
+        )
 
         spec1 = cmd.to_command_spec()
         spec2 = cmd.to_command_spec()
@@ -36,10 +50,17 @@ class TestCommandSpecConversion:
         assert spec1 is spec2
 
     def test_subcommands_converted_recursively(self):
-        child = RuntimeCommand(name="child", run_func=EMPTY_COMMAND_FUNCTION)
+        child = RuntimeCommand(
+            name="child",
+            run_func=EMPTY_COMMAND_FUNCTION,
+            converters=ConverterRegistry(),
+            validators=ParameterValidatorRegistry(),
+        )
         parent = RuntimeCommand(
             name="parent",
             run_func=EMPTY_COMMAND_FUNCTION,
+            converters=ConverterRegistry(),
+            validators=ParameterValidatorRegistry(),
             subcommands={"child": child},
         )
 
@@ -50,15 +71,24 @@ class TestCommandSpecConversion:
         assert spec.subcommands["child"].name == "child"
 
     def test_nested_subcommands_converted(self):
-        leaf = RuntimeCommand(name="leaf", run_func=EMPTY_COMMAND_FUNCTION)
+        leaf = RuntimeCommand(
+            name="leaf",
+            run_func=EMPTY_COMMAND_FUNCTION,
+            converters=ConverterRegistry(),
+            validators=ParameterValidatorRegistry(),
+        )
         mid = RuntimeCommand(
             name="mid",
             run_func=EMPTY_COMMAND_FUNCTION,
+            converters=ConverterRegistry(),
+            validators=ParameterValidatorRegistry(),
             subcommands={"leaf": leaf},
         )
         root = RuntimeCommand(
             name="root",
             run_func=EMPTY_COMMAND_FUNCTION,
+            converters=ConverterRegistry(),
+            validators=ParameterValidatorRegistry(),
             subcommands={"mid": mid},
         )
 

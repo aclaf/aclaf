@@ -7,7 +7,7 @@ from annotated_types import BaseMetadata
 
 if TYPE_CHECKING:
     from aclaf._conversion import ConverterFunctionType
-    from aclaf._types import ParameterValueType
+    from aclaf.types import ParameterValueType
 
 __all__ = [
     "Arg",

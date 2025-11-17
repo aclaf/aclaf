@@ -51,8 +51,10 @@ def app(
         func: "CommandFunctionType",
     ) -> "Command":
         is_async = is_async_command_function(func)
+        # Use function name if name not provided
+        app_name = name if name is not None else func.__name__
         app = App(
-            name=name,
+            name=app_name,
             aliases=aliases,
             parser_config=parser_config,
             is_async=is_async,

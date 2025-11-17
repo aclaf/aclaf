@@ -2,6 +2,8 @@
 import pytest
 
 from aclaf import RuntimeCommand
+from aclaf._conversion import ConverterRegistry
+from aclaf._validation import ParameterValidatorRegistry
 from aclaf.parser import ParseResult
 
 
@@ -12,7 +14,13 @@ class TestAsyncDetection:
         def handler():
             pass
 
-        cmd = RuntimeCommand(name="test", run_func=handler, is_async=False)
+        cmd = RuntimeCommand(
+            name="test",
+            run_func=handler,
+            converters=ConverterRegistry(),
+            validators=ParameterValidatorRegistry(),
+            is_async=False,
+        )
         parse_result = ParseResult(command="test", options={}, positionals={})
 
         assert cmd.check_async(parse_result) is False
@@ -22,7 +30,13 @@ class TestAsyncDetection:
         async def handler():
             pass
 
-        cmd = RuntimeCommand(name="test", run_func=handler, is_async=True)
+        cmd = RuntimeCommand(
+            name="test",
+            run_func=handler,
+            converters=ConverterRegistry(),
+            validators=ParameterValidatorRegistry(),
+            is_async=True,
+        )
         parse_result = ParseResult(command="test", options={}, positionals={})
 
         assert cmd.check_async(parse_result) is True
@@ -32,7 +46,13 @@ class TestAsyncDetection:
         def handler():
             pass
 
-        cmd = RuntimeCommand(name="test", run_func=handler, is_async=False)
+        cmd = RuntimeCommand(
+            name="test",
+            run_func=handler,
+            converters=ConverterRegistry(),
+            validators=ParameterValidatorRegistry(),
+            is_async=False,
+        )
         parse_result = ParseResult(
             command="test",
             options={},
@@ -53,10 +73,18 @@ class TestAsyncPropagationFromSubcommands:
         async def child_handler():
             pass
 
-        child = RuntimeCommand(name="child", run_func=child_handler, is_async=True)
+        child = RuntimeCommand(
+            name="child",
+            run_func=child_handler,
+            converters=ConverterRegistry(),
+            validators=ParameterValidatorRegistry(),
+            is_async=True,
+        )
         parent = RuntimeCommand(
             name="parent",
             run_func=parent_handler,
+            converters=ConverterRegistry(),
+            validators=ParameterValidatorRegistry(),
             is_async=False,
             subcommands={"child": child},
         )
@@ -78,10 +106,18 @@ class TestAsyncPropagationFromSubcommands:
         def child_handler():
             pass
 
-        child = RuntimeCommand(name="child", run_func=child_handler, is_async=False)
+        child = RuntimeCommand(
+            name="child",
+            run_func=child_handler,
+            converters=ConverterRegistry(),
+            validators=ParameterValidatorRegistry(),
+            is_async=False,
+        )
         parent = RuntimeCommand(
             name="parent",
             run_func=parent_handler,
+            converters=ConverterRegistry(),
+            validators=ParameterValidatorRegistry(),
             is_async=False,
             subcommands={"child": child},
         )
@@ -103,10 +139,18 @@ class TestAsyncPropagationFromSubcommands:
         def child_handler():
             pass
 
-        child = RuntimeCommand(name="child", run_func=child_handler, is_async=False)
+        child = RuntimeCommand(
+            name="child",
+            run_func=child_handler,
+            converters=ConverterRegistry(),
+            validators=ParameterValidatorRegistry(),
+            is_async=False,
+        )
         parent = RuntimeCommand(
             name="parent",
             run_func=parent_handler,
+            converters=ConverterRegistry(),
+            validators=ParameterValidatorRegistry(),
             is_async=True,
             subcommands={"child": child},
         )
@@ -135,16 +179,26 @@ class TestNestedAsyncPropagation:
         async def leaf_handler():
             pass
 
-        leaf = RuntimeCommand(name="leaf", run_func=leaf_handler, is_async=True)
+        leaf = RuntimeCommand(
+            name="leaf",
+            run_func=leaf_handler,
+            converters=ConverterRegistry(),
+            validators=ParameterValidatorRegistry(),
+            is_async=True,
+        )
         mid = RuntimeCommand(
             name="mid",
             run_func=mid_handler,
+            converters=ConverterRegistry(),
+            validators=ParameterValidatorRegistry(),
             is_async=False,
             subcommands={"leaf": leaf},
         )
         root = RuntimeCommand(
             name="root",
             run_func=root_handler,
+            converters=ConverterRegistry(),
+            validators=ParameterValidatorRegistry(),
             is_async=False,
             subcommands={"mid": mid},
         )
@@ -174,16 +228,26 @@ class TestNestedAsyncPropagation:
         def leaf_handler():
             pass
 
-        leaf = RuntimeCommand(name="leaf", run_func=leaf_handler, is_async=False)
+        leaf = RuntimeCommand(
+            name="leaf",
+            run_func=leaf_handler,
+            converters=ConverterRegistry(),
+            validators=ParameterValidatorRegistry(),
+            is_async=False,
+        )
         mid = RuntimeCommand(
             name="mid",
             run_func=mid_handler,
+            converters=ConverterRegistry(),
+            validators=ParameterValidatorRegistry(),
             is_async=False,
             subcommands={"leaf": leaf},
         )
         root = RuntimeCommand(
             name="root",
             run_func=root_handler,
+            converters=ConverterRegistry(),
+            validators=ParameterValidatorRegistry(),
             is_async=False,
             subcommands={"mid": mid},
         )
@@ -210,7 +274,13 @@ class TestAsyncDetectionErrorHandling:
         def handler():
             pass
 
-        cmd = RuntimeCommand(name="parent", run_func=handler, subcommands={})
+        cmd = RuntimeCommand(
+            name="parent",
+            run_func=handler,
+            converters=ConverterRegistry(),
+            validators=ParameterValidatorRegistry(),
+            subcommands={},
+        )
 
         parse_result = ParseResult(
             command="parent",
@@ -231,10 +301,17 @@ class TestAsyncDetectionErrorHandling:
             pass
 
         # Register "child" but parse result asks for "other"
-        child = RuntimeCommand(name="child", run_func=child_handler)
+        child = RuntimeCommand(
+            name="child",
+            run_func=child_handler,
+            converters=ConverterRegistry(),
+            validators=ParameterValidatorRegistry(),
+        )
         parent = RuntimeCommand(
             name="parent",
             run_func=parent_handler,
+            converters=ConverterRegistry(),
+            validators=ParameterValidatorRegistry(),
             subcommands={"child": child},
         )
 

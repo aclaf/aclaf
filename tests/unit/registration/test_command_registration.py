@@ -86,7 +86,7 @@ class TestCommandAsyncDetection:
             pass
 
         cmd = Command(name="test")
-        assert cmd.is_async is None
+        assert cmd.is_async is False  # Defaults to False when no run_func
 
         cmd.run_func = handler
         cmd.is_async = cmd._check_run_func_async()  # noqa: SLF001
@@ -137,7 +137,9 @@ class TestCommandConversion:
             pass
 
         cmd = Command(name="test", run_func=handler)
-        cmd.is_async = False
+        # Command.__post_init__ already sets is_async based on run_func
+        # So it should already be True
+        assert cmd.is_async is True
 
         final = cmd.to_runtime_command()
         assert final.is_async is True
