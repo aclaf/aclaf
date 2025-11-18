@@ -37,7 +37,6 @@ class TestNegativeNumbersDisabled:
         assert result.options["3"].value == ".14"
 
 
-
 class TestNegativeNumbersDefaultBehavior:
     def test_default_behavior_is_enabled(self):
         spec = CommandSpec(

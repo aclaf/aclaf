@@ -95,7 +95,7 @@ class TimedeltaRange(BaseMetadata):
 
 
 def validate_timezone(
-    value: "ParameterValueType | ParameterValueMappingType | None",
+    _value: "ParameterValueType | ParameterValueMappingType | None",
     metadata: "ValidatorMetadataType",
 ) -> tuple[str, ...] | None:
     """Placeholder for timezone validation.

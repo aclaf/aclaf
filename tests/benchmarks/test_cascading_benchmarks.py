@@ -73,7 +73,7 @@ class TestCascadingPerformance:
             ]
 
             for i in range(len(commands) - 1):
-                commands[i].subcommands[f"level{i+2}"] = commands[i + 1]
+                commands[i].subcommands[f"level{i + 2}"] = commands[i + 1]
 
             return (parent, commands[0]), {}
 
@@ -163,11 +163,11 @@ class TestCascadingPerformance:
                 return BenchType(int(value))
 
             @parent.parameter_validator(BenchMetadata)
-            def validate_bench(value, metadata):
+            def validate_bench(value, metadata):  # noqa: ARG001
                 return None
 
             @parent.command_validator(BenchMetadata)
-            def validate_command(value, metadata):
+            def validate_command(value, metadata):  # noqa: ARG001
                 return None
 
             child = Command(name="child", run_func=EMPTY_COMMAND_FUNCTION)

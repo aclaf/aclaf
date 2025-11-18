@@ -1,4 +1,3 @@
-
 import pytest
 
 from aclaf.parser import CommandSpec, OptionSpec, Parser
@@ -7,7 +6,6 @@ from aclaf.parser.types import EXACTLY_ONE_ARITY
 
 @pytest.mark.security
 class TestShellMetacharacterHandling:
-
     def test_semicolon_preserved_as_literal(self):
         spec = CommandSpec(
             name="cmd",
@@ -101,7 +99,6 @@ class TestShellMetacharacterHandling:
 
 @pytest.mark.security
 class TestPathTraversalPreservation:
-
     def test_unix_path_traversal_preserved(self):
         spec = CommandSpec(
             name="cmd",
@@ -164,7 +161,6 @@ class TestPathTraversalPreservation:
 
 @pytest.mark.security
 class TestEnvironmentVariableHandling:
-
     def test_environment_variable_preserved(self):
         spec = CommandSpec(
             name="cmd",

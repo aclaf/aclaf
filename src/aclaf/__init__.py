@@ -5,12 +5,10 @@ from ._command import Command, CommandInput
 from ._context import Context, ParameterSource, ParameterSourceMapping
 from ._conversion import ConverterFunctionType, ConverterRegistry
 from ._parameters import CommandParameter, Parameter
-from ._response import ConsoleResponder, ResponderProtocol
 from ._runtime import (
     EMPTY_COMMAND_FUNCTION,
     CommandFunctionType,
     ParameterKind,
-    RespondFunctionProtocol,
     RuntimeCommand,
     RuntimeParameter,
 )
@@ -27,7 +25,6 @@ __all__ = [
     "CommandInput",
     "CommandParameter",
     "Console",
-    "ConsoleResponder",
     "Context",
     "ConverterFunctionType",
     "ConverterRegistry",
@@ -37,8 +34,6 @@ __all__ = [
     "ParameterSource",
     "ParameterSourceMapping",
     "ParameterValueType",
-    "RespondFunctionProtocol",
-    "ResponderProtocol",
     "RuntimeCommand",
     "RuntimeParameter",
     "ValidatorFunction",

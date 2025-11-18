@@ -20,7 +20,6 @@ if TYPE_CHECKING:
 
 
 class TestContextParameterInjection:
-
     def test_context_param_injected_to_run_func(self):
         received_context: Context | None = None
 
@@ -68,7 +67,6 @@ class TestContextParameterInjection:
 
 
 class TestConsoleParameterInjection:
-
     def test_console_param_injected_to_run_func(self):
         received_console: Console | None = None
         test_console = MockConsole()
@@ -122,7 +120,6 @@ class TestConsoleParameterInjection:
 
 
 class TestLoggerParameterInjection:
-
     def test_logger_param_injected_to_run_func(self):
         received_logger: Logger | None = None
         test_logger = MockLogger()
@@ -176,7 +173,6 @@ class TestLoggerParameterInjection:
 
 
 class TestMultipleSpecialParametersInjection:
-
     def test_all_special_params_injected_together(self):
         received_context: Context | None = None
         received_console: Console | None = None
@@ -251,7 +247,6 @@ class TestMultipleSpecialParametersInjection:
 
 
 class TestSpecialParamsMixedWithConvertedParams:
-
     def test_special_params_mixed_with_regular_parameters(self):
         received_args: dict[str, object] | None = None
         test_console = MockConsole()
@@ -335,9 +330,7 @@ class TestSpecialParamsMixedWithConvertedParams:
             options={"ctx": ParsedOption(name="ctx", value="user_value")},
             positionals={},
         )
-        ctx = Context(
-            command="test", command_path=("test",), parse_result=parse_result
-        )
+        ctx = Context(command="test", command_path=("test",), parse_result=parse_result)
 
         cmd.dispatch(ctx)
 
@@ -347,7 +340,6 @@ class TestSpecialParamsMixedWithConvertedParams:
 
 
 class TestSpecialParamsWithSubcommands:
-
     def test_special_params_propagated_to_subcommands(self):
         received_parent_args: dict[str, object] | None = None
         received_child_args: dict[str, object] | None = None

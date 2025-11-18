@@ -1,5 +1,5 @@
 # pyright: reportDeprecated=false
-from typing import Annotated, Union
+from typing import Annotated
 
 from annotated_types import Ge, Gt, Le, Lt
 from typing_inspection.introspection import AnnotationSource
@@ -161,9 +161,7 @@ class TestUnionMetadataExtraction:
     def test_nested_annotated_with_union_extraction(self):
         inner = Annotated[int, Gt(0)]
         outer = Annotated[inner | None, Opt()]
-        param = CommandParameter.from_annotation(
-            "value", outer, AnnotationSource.BARE
-        )
+        param = CommandParameter.from_annotation("value", outer, AnnotationSource.BARE)
         assert param.kind == ParameterKind.OPTION
         gt_found = any(isinstance(m, Gt) for m in param.metadata)
         assert gt_found
@@ -171,11 +169,9 @@ class TestUnionMetadataExtraction:
     def test_union_metadata_extraction_complex(self):
         type1 = Annotated[int, Gt(0)]
         type2 = Annotated[float, Lt(100.0)]
-        union_type = Union[type1, type2]  # type: ignore[misc]
+        union_type = type1 | type2  # type: ignore[misc]
         outer = Annotated[union_type, Opt()]  # type: ignore[misc]
-        param = CommandParameter.from_annotation(
-            "value", outer, AnnotationSource.BARE
-        )
+        param = CommandParameter.from_annotation("value", outer, AnnotationSource.BARE)
         gt_found = any(isinstance(m, Gt) for m in param.metadata)
         lt_found = any(isinstance(m, Lt) for m in param.metadata)
         assert gt_found
@@ -194,9 +190,7 @@ class TestNestedMetadata:
         level1 = Annotated[int, Gt(0)]
         level2 = Annotated[level1, Le(100)]
         level3 = Annotated[level2, Ge(5), Opt()]
-        param = CommandParameter.from_annotation(
-            "value", level3, AnnotationSource.BARE
-        )
+        param = CommandParameter.from_annotation("value", level3, AnnotationSource.BARE)
         gt_found = any(isinstance(m, Gt) and m.gt == 0 for m in param.metadata)
         le_found = any(isinstance(m, Le) and m.le == 100 for m in param.metadata)
         ge_found = any(isinstance(m, Ge) and m.ge == 5 for m in param.metadata)

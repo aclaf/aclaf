@@ -1,9 +1,14 @@
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import pytest
 from annotated_types import BaseMetadata
 
 from aclaf.validation._registry import ValidatorRegistry
+
+if TYPE_CHECKING:
+    from aclaf.types import ParameterValueMappingType, ParameterValueType
+    from aclaf.validation._registry import ValidatorMetadataType
 
 
 @dataclass(frozen=True, slots=True)
@@ -21,19 +26,19 @@ class MetadataC(BaseMetadata):
     value: float
 
 
-def validator_always_passes(_value, _metadata):
+def validator_always_passes(value, metadata):  # noqa: ARG001
     return None
 
 
-def validator_always_fails(_value, _metadata):
+def validator_always_fails(value, metadata):  # noqa: ARG001
     return ("Error message 1",)
 
 
-def validator_multiple_errors(_value, _metadata):
+def validator_multiple_errors(value, metadata):  # noqa: ARG001
     return ("Error 1", "Error 2", "Error 3")
 
 
-def validator_conditional(value, _metadata):
+def validator_conditional(value, metadata):  # noqa: ARG001
     if isinstance(value, str) and len(value) > 5:
         return ("String too long",)
     return None
@@ -73,7 +78,7 @@ class TestValidatorRegistryRegistration:
         registry = ValidatorRegistry()
         registry.register(MetadataA, validator_always_passes)
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="already registered"):
             registry.register(MetadataA, validator_always_fails)
 
         assert registry.get_validator(MetadataA) is validator_always_passes
@@ -268,7 +273,7 @@ class TestValidatorRegistryValidation:
     def test_validate_preserves_error_order(self):
         registry = ValidatorRegistry()
 
-        def validator_errors_ordered(_value, _metadata):
+        def validator_errors_ordered(value, metadata):  # noqa: ARG001
             return ("Error A", "Error B", "Error C")
 
         registry.register(MetadataA, validator_errors_ordered)

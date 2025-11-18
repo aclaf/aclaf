@@ -335,7 +335,7 @@ class ConverterRegistry:
         """
         converter = self.get_converter(target_type)
         if converter is None:
-            type_name = getattr(target_type, '__name__', repr(target_type))
+            type_name = getattr(target_type, "__name__", repr(target_type))
             msg = f"No converter registered for type '{type_name}'."
             raise TypeError(msg)
 

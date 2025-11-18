@@ -156,7 +156,7 @@ class TestBoolConversion:
 
         @app.command()
         def cmd(  # pyright: ignore[reportUnusedFunction]
-            flag: Annotated[bool, Arg()]
+            flag: Annotated[bool, Arg()],
         ):
             console.print(f"flag={flag}")
 
@@ -171,7 +171,7 @@ class TestBoolConversion:
 
         @app.command()
         def cmd(  # pyright: ignore[reportUnusedFunction]
-            flag: Annotated[bool, Arg()]
+            flag: Annotated[bool, Arg()],
         ):
             console.print(f"flag={flag}")
 
@@ -186,7 +186,7 @@ class TestBoolConversion:
 
         @app.command()
         def cmd(  # pyright: ignore[reportUnusedFunction]
-            flag: Annotated[bool, Arg()]
+            flag: Annotated[bool, Arg()],
         ):
             console.print(f"flag={flag}")
 
@@ -277,7 +277,7 @@ class TestTupleConversion:
 
         @app.command()
         def cmd(  # pyright: ignore[reportUnusedFunction]
-            values: Annotated[tuple[str, ...], ZeroOrMore()] = ()
+            values: Annotated[tuple[str, ...], ZeroOrMore()] = (),
         ):
             console.print(f"values={values!r} type={type(values).__name__}")
 
@@ -291,7 +291,7 @@ class TestTupleConversion:
 
         @app.command()
         def cmd(  # pyright: ignore[reportUnusedFunction]
-            values: Annotated[tuple[int, ...], ZeroOrMore()] = ()
+            values: Annotated[tuple[int, ...], ZeroOrMore()] = (),
         ):
             console.print(f"values={values!r}")
 

@@ -34,8 +34,10 @@ from annotated_types import Interval, MinLen
 from aclaf import App
 from aclaf.console import MockConsole
 from aclaf.exceptions import ValidationError
-from aclaf.metadata import AtLeastOne, Collect, Opt, ZeroOrMore
+from aclaf.metadata import AtLeastOne, Collect, Flag, Opt, ZeroOrMore
 from aclaf.types import PositiveInt
+from aclaf.validation.command import AtLeastOneOf, MutuallyExclusive
+from aclaf.validation.parameter import Pattern
 
 # Type aliases for Kubernetes-specific constraints
 ReplicaCount = Annotated[int, Interval(ge=0, le=10000)]
@@ -325,8 +327,7 @@ class TestKubectlLogsCommand:
         output = console.get_output()
         assert "[logs] follow=True" in output
 
-    def test_logs_with_tail_valid(
-        self, console: MockConsole):
+    def test_logs_with_tail_valid(self, console: MockConsole):
         """Test logs command with valid tail line count."""
         app = App("kubectl", console=console)
 
@@ -348,6 +349,7 @@ class TestKubectlLogsCommand:
         assert "[logs] pod_name=my-pod" in output
         assert "[logs] tail=100" in output
         assert "[logs] follow=True" in output
+
 
 class TestKubectlExecCommand:
     def test_exec_basic(self, kubectl_exec_cli: App, console: MockConsole):
@@ -530,15 +532,17 @@ class TestKubectlValidationFailures:
                 console.print(f"[wait] timeout={timeout}")
 
         with pytest.raises(ValidationError) as exc_info:
-            app([
-                "wait",
-                "pod",
-                "my-pod",
-                "--for",
-                "condition=Ready",
-                "--timeout",
-                "0",
-            ])
+            app(
+                [
+                    "wait",
+                    "pod",
+                    "my-pod",
+                    "--for",
+                    "condition=Ready",
+                    "--timeout",
+                    "0",
+                ]
+            )
 
         assert "must be greater than 0" in str(exc_info.value).lower()
 
@@ -560,15 +564,17 @@ class TestKubectlValidationFailures:
                 console.print(f"[wait] timeout={timeout}")
 
         with pytest.raises(ValidationError) as exc_info:
-            app([
-                "wait",
-                "pod",
-                "my-pod",
-                "--for",
-                "condition=Ready",
-                "--timeout",
-                "-5",
-            ])
+            app(
+                [
+                    "wait",
+                    "pod",
+                    "my-pod",
+                    "--for",
+                    "condition=Ready",
+                    "--timeout",
+                    "-5",
+                ]
+            )
 
         assert "must be greater than 0" in str(exc_info.value).lower()
 
@@ -648,10 +654,10 @@ class TestKubectlValidationFailures:
 class TestKubectlCommandValidators:
     """Test command-scoped validators for kubectl commands."""
 
-    def test_all_namespaces_and_namespace_mutually_exclusive(self, console: MockConsole):
+    def test_all_namespaces_and_namespace_mutually_exclusive(
+        self, console: MockConsole
+    ):
         """Test --all-namespaces and --namespace are mutually exclusive."""
-        from aclaf.validation.command import MutuallyExclusive
-
         app = App("kubectl", console=console)
 
         @app.handler()
@@ -680,13 +686,13 @@ class TestKubectlCommandValidators:
         assert "mutually exclusive" in str(exc_info.value).lower()
 
     @pytest.mark.skip(
-        reason="Command validators don't support boolean flags (False is considered 'provided')"
+        reason=(
+            "Command validators don't support boolean flags "
+            "(False is considered 'provided')"
+        )
     )
     def test_exec_interactive_tty_requires_both(self, console: MockConsole):
         """Test exec -it requires both -i and -t together."""
-        from aclaf.metadata import Flag
-        from aclaf.validation.command import AtLeastOneOf
-
         app = App("kubectl", console=console)
 
         @app.command()
@@ -701,8 +707,9 @@ class TestKubectlCommandValidators:
             if tty:
                 console.print("[exec] tty=True")
 
-        # Add validation to the command instance - at least one of -i or -t must be provided
-        # NOTE: This tests validator functionality, though real kubectl allows -i alone
+        # Add validation: at least one of -i or -t must be provided
+        # NOTE: This tests validator functionality, though real kubectl allows
+        # -i alone
         exec.validate(AtLeastOneOf(parameter_names=("interactive", "tty")))
 
         # Test that providing neither flag raises validation error
@@ -713,8 +720,6 @@ class TestKubectlCommandValidators:
 
     def test_scale_requires_replicas(self, console: MockConsole):
         """Test scale requires --replicas to be specified."""
-        from aclaf.validation.command import AtLeastOneOf
-
         app = App("kubectl", console=console)
 
         @app.command()
@@ -738,16 +743,14 @@ class TestKubectlCommandValidators:
 
     def test_resource_name_pattern_validation(self, console: MockConsole):
         """Test resource name DNS-1123 pattern validation."""
-        from aclaf.validation.parameter import Pattern
-
         app = App("kubectl", console=console)
 
-        DNS1123Name = Annotated[str, Pattern(r"^[a-z0-9]([-a-z0-9]*[a-z0-9])?$")]
+        dns_1123_name = Annotated[str, Pattern(r"^[a-z0-9]([-a-z0-9]*[a-z0-9])?$")]
 
         @app.command()
         def create(
             resource_type: str,
-            resource_name: DNS1123Name,
+            resource_name: dns_1123_name,
         ):  # pyright: ignore[reportUnusedFunction]
             console.print(f"[create] resource_type={resource_type}")
             console.print(f"[create] resource_name={resource_name}")
@@ -974,8 +977,7 @@ class TestComplexKubectlScenarios:
 
 
 class TestKubectlScaleCommand:
-    def test_scale_with_replicas_valid(
-        self, console: MockConsole):
+    def test_scale_with_replicas_valid(self, console: MockConsole):
         """Test scaling with valid replica count."""
         app = App("kubectl", console=console)
 
@@ -996,9 +998,9 @@ class TestKubectlScaleCommand:
         assert "[scale] resource_name=my-app" in output
         assert "[scale] replicas=3" in output
 
+
 class TestKubectlWaitCommand:
-    def test_wait_with_timeout_valid(
-        self, console: MockConsole):
+    def test_wait_with_timeout_valid(self, console: MockConsole):
         """Test wait command with valid timeout."""
         app = App("kubectl", console=console)
 
@@ -1015,15 +1017,17 @@ class TestKubectlWaitCommand:
             if timeout:
                 console.print(f"[wait] timeout={timeout}")
 
-        app([
-            "wait",
-            "pod",
-            "my-pod",
-            "--for",
-            "condition=Ready",
-            "--timeout",
-            "300",
-        ])
+        app(
+            [
+                "wait",
+                "pod",
+                "my-pod",
+                "--for",
+                "condition=Ready",
+                "--timeout",
+                "300",
+            ]
+        )
 
         output = console.get_output()
         assert "[wait] resource_type=pod" in output
@@ -1031,9 +1035,9 @@ class TestKubectlWaitCommand:
         assert "[wait] for_condition=condition=Ready" in output
         assert "[wait] timeout=300" in output
 
+
 class TestKubectlTopCommand:
-    def test_top_pods_with_validated_names(
-        self, console: MockConsole):
+    def test_top_pods_with_validated_names(self, console: MockConsole):
         """Test top command with validated resource names."""
         app = App("kubectl", console=console)
 

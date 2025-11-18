@@ -34,7 +34,9 @@ def parameter_names_strategy(draw: st.DrawFn, min_size: int = 0, max_size: int =
             st.lists(
                 st.text(
                     alphabet=st.characters(
-                        whitelist_categories=("Ll", "Lu"), min_codepoint=97, max_codepoint=122
+                        whitelist_categories=("Ll", "Lu"),
+                        min_codepoint=97,
+                        max_codepoint=122,
                     ),
                     min_size=1,
                     max_size=10,
@@ -51,6 +53,7 @@ def parameter_names_strategy(draw: st.DrawFn, min_size: int = 0, max_size: int =
 def parameter_mapping_strategy(
     draw: st.DrawFn,
     param_names: tuple[str, ...] | None = None,
+    *,
     include_extra: bool = True,
 ):
     """Generate a parameter mapping with optional extra parameters."""
@@ -81,14 +84,14 @@ def parameter_mapping_strategy(
     return mapping
 
 
-# Property 1: None-value invariant - parameters with None values are always treated as "not provided"
+# Property 1: None-value invariant - parameters with None values are always
+# treated as "not provided"
 
 
 @given(
     param_names=parameter_names_strategy(min_size=1, max_size=4),
-    data=st.data(),
 )
-def test_none_values_treated_as_not_provided_mutually_exclusive(param_names, data):
+def test_none_values_treated_as_not_provided_mutually_exclusive(param_names):
     """Parameters with None values are treated as not provided for MutuallyExclusive."""
     metadata = MutuallyExclusive(parameter_names=param_names)
 
@@ -244,7 +247,9 @@ def test_mutually_exclusive_ignores_extra_parameters(param_names, data):
     metadata = MutuallyExclusive(parameter_names=param_names)
 
     # Generate base mapping
-    value = data.draw(parameter_mapping_strategy(param_names=param_names, include_extra=False))
+    value = data.draw(
+        parameter_mapping_strategy(param_names=param_names, include_extra=False)
+    )
 
     # Add many extra parameters with non-None values
     for i in range(10):
@@ -398,7 +403,9 @@ def test_conflicts_with_equivalent_to_mutually_exclusive(param_names, data):
     value = data.draw(parameter_mapping_strategy(param_names=param_names))
 
     conflicts_result = validate_conflicts_with(value, conflicts_meta)
-    mutually_exclusive_result = validate_mutually_exclusive(value, mutually_exclusive_meta)
+    mutually_exclusive_result = validate_mutually_exclusive(
+        value, mutually_exclusive_meta
+    )
 
     # Both should pass or both should fail
     if conflicts_result is None:

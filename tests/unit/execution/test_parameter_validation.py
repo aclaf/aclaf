@@ -19,7 +19,6 @@ if TYPE_CHECKING:
 
 
 class TestConversionErrorHandling:
-
     def test_conversion_errors_become_validation_errors(
         self,
         runtime_option_factory: "Callable[..., RuntimeParameter]",
@@ -58,7 +57,9 @@ class TestConversionErrorHandling:
         validator_called: list[bool] = []
 
         def should_not_be_called(
-            value: object, other_values: object, metadata: object  # noqa: ARG001
+            _value: object,
+            _other_values: object,
+            _metadata: object,
         ) -> tuple[str, ...] | None:
             validator_called.append(True)
             return None
@@ -122,7 +123,6 @@ class TestConversionErrorHandling:
 
 
 class TestRequiredParameterValidation:
-
     def test_required_parameter_missing_from_raw_raises_error(
         self,
         runtime_option_factory: "Callable[..., RuntimeParameter]",
@@ -233,7 +233,6 @@ class TestRequiredParameterValidation:
 
 
 class TestValidatorErrorCollection:
-
     def test_validator_errors_collected_in_runtime(
         self,
         runtime_option_factory: "Callable[..., RuntimeParameter]",
@@ -268,7 +267,6 @@ class TestValidatorErrorCollection:
 
 
 class TestValidatorInvocation:
-
     def test_validators_not_called_for_none_values(
         self,
         runtime_option_factory: "Callable[..., RuntimeParameter]",
@@ -332,7 +330,6 @@ class TestValidatorInvocation:
 
 
 class TestErrorAggregation:
-
     def test_empty_dict_returned_when_all_valid(
         self,
         runtime_option_factory: "Callable[..., RuntimeParameter]",

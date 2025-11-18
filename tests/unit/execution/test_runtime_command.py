@@ -5,7 +5,7 @@ import pytest
 
 from aclaf import EMPTY_COMMAND_FUNCTION, RuntimeCommand, RuntimeParameter
 from aclaf._errors import ErrorConfiguration
-from aclaf._runtime import ParameterKind, default_respond
+from aclaf._runtime import ParameterKind
 from aclaf.logging import NullLogger
 from aclaf.parser import Parser
 
@@ -52,9 +52,6 @@ class TestRuntimeCommand:
         assert cmd.logger_param is None
         assert cmd.parser_cls is Parser
         assert cmd.parser_config is None
-        assert cmd.respond is default_respond
-        assert isinstance(cmd.responders, MappingProxyType)
-        assert cmd.responders == {}
         assert isinstance(cmd.subcommands, MappingProxyType)
         assert cmd.subcommands == {}
 

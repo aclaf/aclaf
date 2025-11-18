@@ -1,4 +1,3 @@
-
 import pytest
 
 from aclaf import (
@@ -20,7 +19,6 @@ from aclaf.parser import (
 
 
 class TestCommandSpecConversion:
-
     def test_minimal_command_to_spec(self):
         cmd = RuntimeCommand(
             name="test",
@@ -113,7 +111,6 @@ class TestCommandSpecConversion:
 
 
 class TestParameterToOptionSpecConversion:
-
     def test_option_parameter_converts_to_option_spec(self):
         param = RuntimeParameter(
             name="verbose",
@@ -215,7 +212,6 @@ class TestParameterToOptionSpecConversion:
 
 
 class TestParameterToPositionalSpecConversion:
-
     def test_positional_parameter_converts_to_positional_spec(self):
         param = RuntimeParameter(
             name="filename",
@@ -256,7 +252,6 @@ class TestParameterToPositionalSpecConversion:
 
 
 class TestCommandWithParameterSpecConversion:
-
     def test_command_with_options_converts_to_spec(self):
         opt1 = RuntimeParameter(
             name="verbose",

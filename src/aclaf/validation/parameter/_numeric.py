@@ -29,11 +29,9 @@ class IsInteger(BaseMetadata):
     """Value must be a whole number (validates float is .0)."""
 
 
-
 @dataclass(slots=True, frozen=True)
 class IsPositive(BaseMetadata):
     """Value must be > 0."""
-
 
 
 @dataclass(slots=True, frozen=True)
@@ -41,17 +39,14 @@ class IsNegative(BaseMetadata):
     """Value must be < 0."""
 
 
-
 @dataclass(slots=True, frozen=True)
 class IsNonNegative(BaseMetadata):
     """Value must be >= 0 (common for counts)."""
 
 
-
 @dataclass(slots=True, frozen=True)
 class IsNonPositive(BaseMetadata):
     """Value must be <= 0."""
-
 
 
 @dataclass(slots=True, frozen=True)

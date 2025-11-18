@@ -99,7 +99,7 @@ class TestVariadicHandling:
 
         @app.command()
         def cmd(  # pyright: ignore[reportUnusedFunction]
-            values: Annotated[tuple[int, ...], ZeroOrMore()] = ()
+            values: Annotated[tuple[int, ...], ZeroOrMore()] = (),
         ):
             assert isinstance(values, tuple)
             assert all(isinstance(v, int) for v in values)
@@ -115,7 +115,7 @@ class TestVariadicHandling:
 
         @app.command()
         def cmd(  # pyright: ignore[reportUnusedFunction]
-            values: Annotated[tuple[str, ...], AtLeastOne()]
+            values: Annotated[tuple[str, ...], AtLeastOne()],
         ):
             assert isinstance(values, tuple)
             assert len(values) > 0

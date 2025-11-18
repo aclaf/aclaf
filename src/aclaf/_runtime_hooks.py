@@ -11,12 +11,17 @@ if TYPE_CHECKING:
     from contextlib import (
         AbstractContextManager,
     )
+    from typing import TypeAlias
 
     from aclaf._context import Context
     from aclaf._response import ResponseType
     from aclaf._runtime import RuntimeCommand
     from aclaf.parser import ParserConfiguration, ParseResult
     from aclaf.types import ParameterValueMappingType
+
+    ConversionResult: TypeAlias = tuple[
+        ParameterValueMappingType | None, Mapping[str, Exception] | None
+    ]
 
 
 @runtime_checkable
@@ -53,7 +58,7 @@ class AroundConversionHook(Hook, Protocol):
         self,
         command: "RuntimeCommand",
         parse_result: "ParseResult",
-    ) -> "AbstractContextManager[tuple[ ParameterValueMappingType | None, Mapping[str, Exception] | None]]": ...
+    ) -> "AbstractContextManager[ConversionResult]": ...
 
 
 @runtime_checkable

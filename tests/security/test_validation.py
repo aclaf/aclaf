@@ -1,4 +1,3 @@
-
 import pytest
 
 from aclaf.parser import CommandSpec, OptionSpec, Parser, PositionalSpec
@@ -8,7 +7,6 @@ from aclaf.parser.types import EXACTLY_ONE_ARITY, ONE_OR_MORE_ARITY
 
 @pytest.mark.security
 class TestLongInputHandling:
-
     def test_very_long_option_value(self):
         spec = CommandSpec(
             name="cmd",
@@ -80,7 +78,6 @@ class TestLongInputHandling:
 
 @pytest.mark.security
 class TestUnicodeHandling:
-
     def test_right_to_left_override_preserved(self):
         spec = CommandSpec(
             name="cmd",
@@ -176,7 +173,6 @@ class TestUnicodeHandling:
 
 @pytest.mark.security
 class TestSpecialCharacterHandling:
-
     def test_newline_in_option_value(self):
         spec = CommandSpec(
             name="cmd",

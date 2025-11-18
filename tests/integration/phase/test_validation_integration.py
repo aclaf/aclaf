@@ -23,7 +23,7 @@ class TestIntervalValidator:
 
         @app.command()
         def cmd(  # pyright: ignore[reportUnusedFunction]
-            value: Annotated[int, Interval(ge=0, le=10)]
+            value: Annotated[int, Interval(ge=0, le=10)],
         ):
             console.print(f"value={value}")
 
@@ -37,7 +37,7 @@ class TestIntervalValidator:
 
         @app.command()
         def cmd(  # pyright: ignore[reportUnusedFunction]
-            value: Annotated[int, Interval(ge=0, le=10)]
+            value: Annotated[int, Interval(ge=0, le=10)],
         ):
             console.print(f"value={value}")
 
@@ -51,7 +51,7 @@ class TestIntervalValidator:
 
         @app.command()
         def cmd(  # pyright: ignore[reportUnusedFunction]
-            value: Annotated[int, Interval(ge=0, le=10)]
+            value: Annotated[int, Interval(ge=0, le=10)],
         ):
             console.print(f"value={value}")
 
@@ -65,7 +65,7 @@ class TestIntervalValidator:
 
         @app.command()
         def cmd(  # pyright: ignore[reportUnusedFunction]
-            value: Annotated[int, Interval(ge=0, le=10)]
+            value: Annotated[int, Interval(ge=0, le=10)],
         ):
             console.print(f"value={value}")
 
@@ -77,7 +77,7 @@ class TestIntervalValidator:
 
         @app.command()
         def cmd(  # pyright: ignore[reportUnusedFunction]
-            value: Annotated[int, Interval(ge=0, le=10)]
+            value: Annotated[int, Interval(ge=0, le=10)],
         ):
             console.print(f"value={value}")
 
@@ -125,7 +125,7 @@ class TestMinLenValidator:
 
         @app.command()
         def cmd(  # pyright: ignore[reportUnusedFunction]
-            values: Annotated[tuple[int, ...], MinLen(2), ZeroOrMore()] = ()
+            values: Annotated[tuple[int, ...], MinLen(2), ZeroOrMore()] = (),
         ):
             console.print(f"values={values!r}")
 
@@ -175,7 +175,7 @@ class TestMaxLenValidator:
 
         @app.command()
         def cmd(  # pyright: ignore[reportUnusedFunction]
-            values: Annotated[tuple[int, ...], MaxLen(5), ZeroOrMore()] = ()
+            values: Annotated[tuple[int, ...], MaxLen(5), ZeroOrMore()] = (),
         ):
             console.print(f"values={values!r}")
 
@@ -355,7 +355,7 @@ class TestMultipleValidators:
 
         @app.command()
         def cmd(  # pyright: ignore[reportUnusedFunction]
-            value: Annotated[int, Gt(0), Le(100), MultipleOf(5)]
+            value: Annotated[int, Gt(0), Le(100), MultipleOf(5)],
         ):
             console.print(f"value={value}")
 
@@ -369,7 +369,7 @@ class TestMultipleValidators:
 
         @app.command()
         def cmd(  # pyright: ignore[reportUnusedFunction]
-            value: Annotated[int, Gt(0), Le(100), MultipleOf(5)]
+            value: Annotated[int, Gt(0), Le(100), MultipleOf(5)],
         ):
             console.print(f"value={value}")
 
@@ -381,7 +381,7 @@ class TestMultipleValidators:
 
         @app.command()
         def cmd(  # pyright: ignore[reportUnusedFunction]
-            value: Annotated[int, Gt(0), Le(100), MultipleOf(5)]
+            value: Annotated[int, Gt(0), Le(100), MultipleOf(5)],
         ):
             console.print(f"value={value}")
 
@@ -393,7 +393,7 @@ class TestMultipleValidators:
 
         @app.command()
         def cmd(  # pyright: ignore[reportUnusedFunction]
-            value: Annotated[int, Gt(0), Le(100), MultipleOf(5)]
+            value: Annotated[int, Gt(0), Le(100), MultipleOf(5)],
         ):
             console.print(f"value={value}")
 
@@ -407,7 +407,7 @@ class TestValidationWithOptional:
 
         @app.command()
         def cmd(  # pyright: ignore[reportUnusedFunction]
-            value: Annotated[int, Interval(ge=0, le=10)] | None = None
+            value: Annotated[int, Interval(ge=0, le=10)] | None = None,
         ):
             console.print(f"value={value}")
 
@@ -421,7 +421,7 @@ class TestValidationWithOptional:
 
         @app.command()
         def cmd(  # pyright: ignore[reportUnusedFunction]
-            value: Annotated[int, Interval(ge=0, le=10)] | None = None
+            value: Annotated[int, Interval(ge=0, le=10)] | None = None,
         ):
             console.print(f"value={value}")
 
@@ -441,7 +441,7 @@ class TestValidationWithOptional:
 
         @app.command()
         def cmd(  # pyright: ignore[reportUnusedFunction]
-            value: Annotated[int, Interval(ge=0, le=10)] | None = None
+            value: Annotated[int, Interval(ge=0, le=10)] | None = None,
         ):
             console.print(f"value={value}")
 

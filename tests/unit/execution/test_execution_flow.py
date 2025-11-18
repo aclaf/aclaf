@@ -1,4 +1,3 @@
-
 from typing import TYPE_CHECKING
 
 import pytest
@@ -12,7 +11,6 @@ if TYPE_CHECKING:
 
 
 class TestSyncDispatch:
-
     def test_dispatch_calls_run_func(self):
         called: list[bool] = []
 
@@ -133,7 +131,6 @@ class TestSyncDispatch:
 
 
 class TestAsyncDispatch:
-
     @pytest.mark.asyncio
     async def test_dispatch_async_calls_async_run_func(self):
         called: list[bool] = []
@@ -297,7 +294,6 @@ class TestAsyncDispatch:
 
 
 class TestSubcommandContextCreation:
-
     def test_prepare_subcommand_dispatch_returns_none_without_subcommand(
         self,
         converters: "ConverterRegistry",

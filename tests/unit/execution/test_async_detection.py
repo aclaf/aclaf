@@ -1,4 +1,3 @@
-
 import pytest
 
 from aclaf import RuntimeCommand, ValidatorRegistry
@@ -7,9 +6,7 @@ from aclaf.parser import ParseResult
 
 
 class TestAsyncDetection:
-
     def test_sync_command_returns_false(self):
-
         def handler():
             pass
 
@@ -25,7 +22,6 @@ class TestAsyncDetection:
         assert cmd.check_async(parse_result) is False
 
     def test_async_command_returns_true(self):
-
         async def handler():
             pass
 
@@ -41,7 +37,6 @@ class TestAsyncDetection:
         assert cmd.check_async(parse_result) is True
 
     def test_sync_command_no_subcommand_returns_false(self):
-
         def handler():
             pass
 
@@ -63,9 +58,7 @@ class TestAsyncDetection:
 
 
 class TestAsyncPropagationFromSubcommands:
-
     def test_sync_parent_with_async_subcommand(self):
-
         def parent_handler():
             pass
 
@@ -98,7 +91,6 @@ class TestAsyncPropagationFromSubcommands:
         assert parent.check_async(parse_result) is True
 
     def test_sync_parent_with_sync_subcommand(self):
-
         def parent_handler():
             pass
 
@@ -131,7 +123,6 @@ class TestAsyncPropagationFromSubcommands:
         assert parent.check_async(parse_result) is False
 
     def test_async_parent_returns_true_regardless_of_subcommand(self):
-
         async def parent_handler():
             pass
 
@@ -166,9 +157,7 @@ class TestAsyncPropagationFromSubcommands:
 
 
 class TestNestedAsyncPropagation:
-
     def test_three_level_async_in_leaf(self):
-
         def root_handler():
             pass
 
@@ -217,7 +206,6 @@ class TestNestedAsyncPropagation:
         assert root.check_async(parse_result) is True
 
     def test_three_level_all_sync(self):
-
         def root_handler():
             pass
 
@@ -267,9 +255,7 @@ class TestNestedAsyncPropagation:
 
 
 class TestAsyncDetectionErrorHandling:
-
     def test_unknown_subcommand_raises_error(self):
-
         def handler():
             pass
 
@@ -292,7 +278,6 @@ class TestAsyncDetectionErrorHandling:
             _ = cmd.check_async(parse_result)
 
     def test_missing_subcommand_in_registry(self):
-
         def parent_handler():
             pass
 

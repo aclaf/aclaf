@@ -58,7 +58,7 @@ class ConverterRegistry:
         all runtime type errors.
     """
 
-    _converters: dict[type[Any], ConverterFunctionType] = field(
+    converters: dict[type[Any], ConverterFunctionType] = field(
         default_factory=dict, init=False, repr=False
     )
     logger: Logger = field(default_factory=NullLogger)
@@ -82,12 +82,12 @@ class ConverterRegistry:
         Raises:
             ValueError: If a converter for this type is already registered
         """
-        if type_ in self._converters:
+        if type_ in self.converters:
             msg = f"Converter for type '{type_.__name__}' is already registered."
             raise ValueError(msg)
         # Cast is needed because we store all converters as returning Any,
         # even though this specific converter returns T
-        self._converters[type_] = cast("ConverterFunctionType", converter)
+        self.converters[type_] = cast("ConverterFunctionType", converter)
 
     def unregister(self, type_: type[Any]) -> None:
         """Remove a registered converter for a type.
@@ -98,7 +98,7 @@ class ConverterRegistry:
         Raises:
             KeyError: If no converter is registered for this type
         """
-        del self._converters[type_]
+        del self.converters[type_]
 
     def merge_from(self, other: "ConverterRegistry") -> None:
         """Merge converters from another registry into this one.
@@ -113,9 +113,9 @@ class ConverterRegistry:
         Args:
             other: The registry to merge converters from
         """
-        for type_, converter in other._converters.items():
-            if type_ not in self._converters:
-                self._converters[type_] = converter
+        for type_, converter in other.converters.items():
+            if type_ not in self.converters:
+                self.converters[type_] = converter
 
     def get_converter(  # noqa: PLR0911
         self, type_: Any
@@ -164,8 +164,8 @@ class ConverterRegistry:
 
                 return annotated_converter
 
-        if type_ in self._converters:
-            return self._converters[type_]
+        if type_ in self.converters:
+            return self.converters[type_]
 
         converter = self._try_enum_converter(type_)
         if converter is not None:

@@ -80,9 +80,7 @@ def validate_choices(
     choices_meta = cast("Choices", metadata)
 
     if value not in choices_meta.choices:
-        return (
-            f"must be one of {', '.join(repr(c) for c in choices_meta.choices)}.",
-        )
+        return (f"must be one of {', '.join(repr(c) for c in choices_meta.choices)}.",)
 
     return None
 

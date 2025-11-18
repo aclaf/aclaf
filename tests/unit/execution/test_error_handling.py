@@ -1,5 +1,5 @@
 # pyright: reportPrivateUsage=false
-# ruff: noqa: SLF001, E501
+# ruff: noqa: SLF001
 from typing import TYPE_CHECKING
 
 import pytest
@@ -15,7 +15,6 @@ if TYPE_CHECKING:
 
 
 class TestErrorChecking:
-
     def test_validation_error_raised_when_errors_exist_and_no_subcommand(
         self,
         runtime_option_factory: "Callable[..., RuntimeParameter]",
@@ -149,7 +148,6 @@ class TestErrorChecking:
 
 
 class TestErrorCollection:
-
     def test_single_command_errors_collected(
         self,
         runtime_option_factory: "Callable[..., RuntimeParameter]",
@@ -257,7 +255,9 @@ class TestErrorCollection:
         )
 
         # Child context
-        child_parse_result = ParseResult(command="grandchild", options={}, positionals={})
+        child_parse_result = ParseResult(
+            command="grandchild", options={}, positionals={}
+        )
         child_context = Context(
             command="grandchild",
             command_path=("grandparent", "parent", "grandchild"),

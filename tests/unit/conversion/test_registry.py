@@ -329,9 +329,7 @@ class TestAnnotatedEdgeCases:
 
         # Annotated with unregistered base type should return None from get_converter
         # Testing with unregistered type
-        converter = registry.get_converter(
-            Annotated[UnregisteredType, "metadata"]
-        )
+        converter = registry.get_converter(Annotated[UnregisteredType, "metadata"])
         assert converter is None
 
     def test_annotated_without_args_edge_case(self):

@@ -65,7 +65,7 @@ class TestParsingErrors:
 
         @app.command()
         def cmd(  # pyright: ignore[reportUnusedFunction]
-            values: Annotated[tuple[str, ...], AtLeastOne()]
+            values: Annotated[tuple[str, ...], AtLeastOne()],
         ):
             console.print(f"values={values!r}")
 
@@ -109,7 +109,7 @@ class TestConversionErrors:
 
         @app.command()
         def cmd(  # pyright: ignore[reportUnusedFunction]
-            flag: Annotated[bool, Arg()]
+            flag: Annotated[bool, Arg()],
         ):
             console.print(f"flag={flag}")
 
@@ -140,7 +140,7 @@ class TestValidationErrors:
 
         @app.command()
         def cmd(  # pyright: ignore[reportUnusedFunction]
-            value: Annotated[int, Interval(ge=0, le=10)]
+            value: Annotated[int, Interval(ge=0, le=10)],
         ):
             console.print(f"value={value}")
 

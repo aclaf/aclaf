@@ -1,6 +1,5 @@
 """Unit tests for command constraint validators."""
 
-
 from aclaf.validation.command._constraint import (
     AtLeastOneOf,
     AtMostOneOf,

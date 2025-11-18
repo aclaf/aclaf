@@ -43,6 +43,7 @@ from aclaf.console import MockConsole
 from aclaf.exceptions import ValidationError
 from aclaf.metadata import AtLeastOne, Collect, Flag, ZeroOrMore
 from aclaf.parser import ParserConfiguration
+from aclaf.validation.command import ConflictsWith, MutuallyExclusive, Requires
 
 # Type aliases for build tools and complex scenarios
 ThreadCount = Annotated[int, Interval(ge=1, le=128)]
@@ -483,8 +484,6 @@ class TestComplexCommandValidators:
 
     def test_build_jobs_and_serial_mutually_exclusive(self, console: MockConsole):
         """Test --jobs and --serial are mutually exclusive."""
-        from aclaf.validation.command import MutuallyExclusive
-
         app = App("build", console=console)
 
         @app.command()
@@ -509,8 +508,6 @@ class TestComplexCommandValidators:
 
     def test_build_load_average_requires_jobs(self, console: MockConsole):
         """Test --load-average requires --jobs."""
-        from aclaf.validation.command import Requires
-
         app = App("build", console=console)
 
         @app.command()
@@ -533,10 +530,10 @@ class TestComplexCommandValidators:
 
         assert "requires" in str(exc_info.value).lower()
 
-    def test_npm_install_save_dev_and_global_mutually_exclusive(self, console: MockConsole):
+    def test_npm_install_save_dev_and_global_mutually_exclusive(
+        self, console: MockConsole
+    ):
         """Test npm --save-dev and --global are mutually exclusive."""
-        from aclaf.validation.command import MutuallyExclusive
-
         app = App("npm", console=console)
 
         @app.command()
@@ -554,7 +551,9 @@ class TestComplexCommandValidators:
                 console.print("[install] global=True")
 
         # Add validation to the command instance
-        install.validate(MutuallyExclusive(parameter_names=("save_dev", "global_install")))
+        install.validate(
+            MutuallyExclusive(parameter_names=("save_dev", "global_install"))
+        )
 
         with pytest.raises(ValidationError) as exc_info:
             app(["install", "-D", "-g", "typescript"])
@@ -563,8 +562,6 @@ class TestComplexCommandValidators:
 
     def test_mysql_raw_conflicts_with_tables(self, console: MockConsole):
         """Test mysql -r conflicts with inline table names."""
-        from aclaf.validation.command import ConflictsWith
-
         app = App("mysql", console=console)
 
         @app.command()

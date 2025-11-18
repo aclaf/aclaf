@@ -19,9 +19,7 @@ from aclaf.validation import default_command_validators, default_parameter_valid
 from ._runtime import (
     EMPTY_COMMAND_FUNCTION,
     ParameterKind,
-    RespondFunctionProtocol,
     RuntimeCommand,
-    default_respond,
     is_async_command_function,
 )
 from .exceptions import CommandFunctionAlreadyDefinedError, DuplicateCommandError
@@ -41,7 +39,6 @@ if TYPE_CHECKING:
         ValidatorRegistryKey,
     )
 
-    from ._response import ResponderProtocol
     from ._runtime import CommandFunctionType
     from .parser import ParserConfiguration
 
@@ -63,8 +60,6 @@ class CommandInput(TypedDict, total=False):
     parameters: dict[str, "Parameter"]
     parent_command: "Command | None"
     parser_config: "ParserConfiguration | None"
-    respond: RespondFunctionProtocol
-    responders: dict[str, "ResponderProtocol"]
     root_command: "Command | None"
     run_func: "CommandFunctionType | None"
     subcommands: dict[str, "Command"]
@@ -90,8 +85,6 @@ class Command:
     parameters: dict[str, "Parameter"] = field(default_factory=dict)
     parent_command: "Command | None" = None
     parser_config: "ParserConfiguration | None" = None
-    respond: RespondFunctionProtocol = default_respond
-    responders: dict[str, "ResponderProtocol"] = field(default_factory=dict)
     root_command: "Command | None" = None
     run_func: "CommandFunctionType | None" = None
     subcommands: dict[str, "Command"] = field(default_factory=dict)
@@ -145,8 +138,6 @@ class Command:
             f" parameters={self.parameters!r},"
             f" parent_command={self.parent_command!r},"
             f" parser_config={self.parser_config!r},"
-            f" respond={self.respond!r},"
-            f" responders={self.responders!r},"
             f" root_command={self.root_command!r},"
             f" run_func={self.run_func!r},"
             f" subcommands={self.subcommands!r},"
@@ -167,9 +158,7 @@ class Command:
     def __call__(self, args: "Sequence[str] | None" = None) -> None:
         self.to_runtime_command().invoke(args)
 
-    def to_runtime_command(
-        self, responders: dict[str, "ResponderProtocol"] | None = None
-    ) -> "RuntimeCommand":
+    def to_runtime_command(self) -> "RuntimeCommand":
         run_func = self.run_func or (EMPTY_COMMAND_FUNCTION)
 
         parameters = {
@@ -188,11 +177,9 @@ class Command:
             parameter_validators=self.parameter_validators,
             parameters=parameters,
             parser_config=self.parser_config,
-            respond=self.respond,
-            responders=(responders if responders else {}) | self.responders,
             run_func=run_func,
             subcommands={
-                name: cmd_builder.to_runtime_command(self.responders)
+                name: cmd_builder.to_runtime_command()
                 for name, cmd_builder in self.subcommands.items()
             },
             is_async=self.is_async,

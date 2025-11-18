@@ -1,4 +1,3 @@
-
 # pyright: reportUnknownParameterType=false, reportUnknownVariableType=false
 # pyright: reportUnknownMemberType=false, reportUnknownArgumentType=false
 # pyright: reportMissingParameterType=false, reportUnusedCallResult=false

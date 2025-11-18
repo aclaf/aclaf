@@ -3,6 +3,7 @@
 
 from typing import TYPE_CHECKING
 
+import pytest
 from annotated_types import BaseMetadata
 
 from aclaf import EMPTY_COMMAND_FUNCTION, Command
@@ -337,9 +338,7 @@ class TestDeepHierarchyCascading:
             pass
 
         level3_cmd = (
-            root.subcommands["level1"]
-            .subcommands["level2"]
-            .subcommands["level3"]
+            root.subcommands["level1"].subcommands["level2"].subcommands["level3"]
         )
         assert level3_cmd.root_command is root
 
@@ -378,9 +377,7 @@ class TestDeepHierarchyCascading:
         assert child.root_command is parent
         assert grandchild.root_command is parent
 
-    def test_mount_multiple_commands_with_subcommands(
-        self, logger: "Logger"
-    ) -> None:
+    def test_mount_multiple_commands_with_subcommands(self, logger: "Logger") -> None:
         root = Command(name="root", logger=logger)
 
         @root.converter(CascadeInt)
@@ -538,8 +535,6 @@ class TestMergeSemantics:
         assert result.value == 50  # child multiplies by 10, not parent's 2
 
     def test_child_validator_takes_precedence_over_parent(self) -> None:
-        from aclaf.validation import ValidatorRegistry
-
         parent = Command(name="parent")
         child = Command(name="child", run_func=EMPTY_COMMAND_FUNCTION)
 
@@ -557,7 +552,6 @@ class TestMergeSemantics:
         ):
             nonlocal parent_called
             parent_called = True
-            return None
 
         @child.parameter_validator(CascadeMetadata1)
         def child_validator(
@@ -566,7 +560,6 @@ class TestMergeSemantics:
         ):
             nonlocal child_called
             child_called = True
-            return None
 
         parent.mount(child)
 
@@ -605,8 +598,6 @@ class TestMergeSemantics:
         assert child.converters.has_converter(CascadeStr)
 
     def test_child_inherits_parent_validators_it_doesnt_have(self) -> None:
-        from aclaf.validation import ValidatorRegistry
-
         parent = Command(name="parent")
         child = Command(name="child", run_func=EMPTY_COMMAND_FUNCTION)
 
@@ -644,13 +635,13 @@ class TestMergeSemantics:
         assert child.parameter_validators.has_validator(CascadeMetadata3)
 
     def test_logger_always_overwritten_by_parent(self) -> None:
-        from aclaf.logging import MockLogger
-
         parent_logger = MockLogger()
         child_logger = MockLogger()
 
         parent = Command(name="parent", logger=parent_logger)
-        child = Command(name="child", run_func=EMPTY_COMMAND_FUNCTION, logger=child_logger)
+        child = Command(
+            name="child", run_func=EMPTY_COMMAND_FUNCTION, logger=child_logger
+        )
 
         parent.mount(child)
 
@@ -658,11 +649,11 @@ class TestMergeSemantics:
         assert child.logger is parent_logger
 
     def test_logger_set_for_child_with_default_logger(self) -> None:
-        from aclaf.logging import MockLogger
-
         parent_logger = MockLogger()
         parent = Command(name="parent", logger=parent_logger)
-        child = Command(name="child", run_func=EMPTY_COMMAND_FUNCTION)  # NullLogger by default
+        child = Command(
+            name="child", run_func=EMPTY_COMMAND_FUNCTION
+        )  # NullLogger by default
 
         parent.mount(child)
 
@@ -716,8 +707,6 @@ class TestMergeSemantics:
 
 class TestRecursionDepthValidation:
     def test_excessive_depth_raises_recursion_error(self) -> None:
-        import pytest
-
         root = Command(name="root")
         current = root
 
@@ -734,11 +723,9 @@ class TestRecursionDepthValidation:
 
         # Cascading should raise RecursionError
         with pytest.raises(RecursionError, match="exceeds maximum depth"):
-            root._cascade_config_recursive(first_level)
+            root._cascade_config_recursive(first_level)  # noqa: SLF001
 
     def test_depth_validation_error_message(self) -> None:
-        import pytest
-
         root = Command(name="root")
         current = root
 
@@ -754,7 +741,7 @@ class TestRecursionDepthValidation:
             RecursionError,
             match="Command hierarchy exceeds maximum depth of 900 levels",
         ):
-            root._cascade_config_recursive(first_level)
+            root._cascade_config_recursive(first_level)  # noqa: SLF001
 
     def test_within_depth_limit_succeeds(self) -> None:
         root = Command(name="root")
@@ -769,4 +756,4 @@ class TestRecursionDepthValidation:
         first_level = root.subcommands["level_0"]
 
         # Should not raise
-        root._cascade_config_recursive(first_level)
+        root._cascade_config_recursive(first_level)  # noqa: SLF001

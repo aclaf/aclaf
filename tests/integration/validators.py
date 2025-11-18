@@ -64,14 +64,14 @@ def validate_port_mapping(
     # Examples: "8080:80", "127.0.0.1:8080:80", "8080:80/tcp"
     port_pattern = re.compile(
         r"^(?:(?P<host_ip>[\w.]+):)?(?P<host_port>\d+):(?P<container_port>\d+)"
-         r"(?:/(?P<protocol>tcp|udp))?$"
+        r"(?:/(?P<protocol>tcp|udp))?$"
     )
 
     port_match = port_pattern.match(value)
     if not port_match:
         msg = (
             "must be in format [host_ip:]host_port:container_port[/protocol] "
-             "(e.g., \"8080:80\", \"127.0.0.1:8080:80/tcp\")."
+            '(e.g., "8080:80", "127.0.0.1:8080:80/tcp").'
         )
         return (msg,)
 
@@ -106,7 +106,7 @@ def validate_env_var(
     if not env_pattern.match(value):
         msg = (
             "must be in format KEY=VALUE where KEY starts with letter or "
-             "underscore (e.g., \"PATH=/usr/bin\", \"DEBUG=true\")."
+            'underscore (e.g., "PATH=/usr/bin", "DEBUG=true").'
         )
         return (msg,)
 
@@ -128,8 +128,8 @@ def validate_label(
     if not label_pattern.match(value):
         msg = (
             "must be in format key=value where key contains only "
-             "alphanumeric, dots, hyphens, or underscores (e.g., \"app.version=1.0\", "
-             "\"env=production\")."
+            'alphanumeric, dots, hyphens, or underscores (e.g., "app.version=1.0", '
+            '"env=production").'
         )
         return (msg,)
 
@@ -164,7 +164,7 @@ def validate_resource_limit(
         return None
 
     msg = (
-        "must be in format like \"512m\", \"2g\", \"1024k\" for memory or "
-         "\"0.5\", \"2\" for CPU count."
+        'must be in format like "512m", "2g", "1024k" for memory or '
+        '"0.5", "2" for CPU count.'
     )
     return (msg,)

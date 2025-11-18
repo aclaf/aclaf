@@ -204,9 +204,7 @@ def test_date_range_validates_dates_within_exclusive_range(after, before):
         after=after, before=before, inclusive_after=False, inclusive_before=False
     )
     # Generate date strictly between bounds
-    value = date.fromordinal(
-        (after.toordinal() + before.toordinal()) // 2
-    )
+    value = date.fromordinal((after.toordinal() + before.toordinal()) // 2)
 
     # Only test if value is strictly between bounds
     if after < value < before:
@@ -255,9 +253,7 @@ def test_sequence_contains_passes_when_item_present(items, required_item):
     assert result is None
 
 
-@given(
-    items=st.lists(st.integers(min_value=0, max_value=100), min_size=0, max_size=10)
-)
+@given(items=st.lists(st.integers(min_value=0, max_value=100), min_size=0, max_size=10))
 def test_item_type_passes_for_correct_types(items):
     metadata = ItemType(types=(int,))
 
@@ -265,7 +261,6 @@ def test_item_type_passes_for_correct_types(items):
 
     # All items are integers
     assert result is None
-
 
 
 # Mapping validators

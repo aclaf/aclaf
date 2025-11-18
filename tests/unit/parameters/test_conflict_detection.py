@@ -80,9 +80,7 @@ class TestAccumulationModeConflicts:
 
     def test_single_accumulation_mode_succeeds(self):
         annotation = Annotated[str, Opt(), LastWins()]
-        _ = CommandParameter.from_annotation(
-            "value", annotation, AnnotationSource.BARE
-        )
+        _ = CommandParameter.from_annotation("value", annotation, AnnotationSource.BARE)
 
 
 class TestParameterKindConflicts:

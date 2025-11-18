@@ -167,9 +167,7 @@ class CommandParameter(Parameter):
     value_type: "type[ParameterValueType] | None" = None
 
     converter: "ConverterFunctionType | None" = None
-    validators: tuple["ValidatorFunction", ...] = field(
-        default_factory=tuple
-    )
+    validators: tuple["ValidatorFunction", ...] = field(default_factory=tuple)
 
     _metadata_by_type: MetadataByType | None = field(
         default=None, init=False, repr=False
@@ -577,9 +575,7 @@ class CommandParameter(Parameter):
             raise ValueError(msg)
 
         # Check if a default was provided (including None) or default_factory
-        has_default = (
-            self.default is not NO_DEFAULT or self.default_factory is not None
-        )
+        has_default = self.default is not NO_DEFAULT or self.default_factory is not None
         arity = self.arity or Arity(min=0 if has_default else 1, max=1)
 
         metadata = [meta for meta in self.metadata if isinstance(meta, BaseMetadata)]

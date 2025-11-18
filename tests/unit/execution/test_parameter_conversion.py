@@ -17,7 +17,6 @@ if TYPE_CHECKING:
 
 
 class TestBasicConversion:
-
     def test_convert_string_to_int(
         self,
         runtime_option_factory: "Callable[..., RuntimeParameter]",
@@ -128,7 +127,6 @@ class TestBasicConversion:
 
 
 class TestCustomConverter:
-
     def test_convert_with_custom_converter_function(
         self,
         runtime_option_factory: "Callable[..., RuntimeParameter]",
@@ -166,7 +164,6 @@ class TestCustomConverter:
 
 
 class TestDefaultValues:
-
     def test_static_default_applied_when_parameter_missing(
         self,
         runtime_option_factory: "Callable[..., RuntimeParameter]",
@@ -276,7 +273,6 @@ class TestDefaultValues:
 
 
 class TestConversionErrors:
-
     def test_conversion_error_captured_in_errors_dict(
         self,
         runtime_option_factory: "Callable[..., RuntimeParameter]",
@@ -406,7 +402,6 @@ class TestConversionErrors:
 
 
 class TestPositionalConversion:
-
     def test_convert_positional_parameter(
         self,
         runtime_positional_factory: "Callable[..., RuntimeParameter]",
@@ -468,7 +463,6 @@ class TestPositionalConversion:
 
 
 class TestEdgeCases:
-
     def test_empty_string_converted(
         self,
         runtime_option_factory: "Callable[..., RuntimeParameter]",

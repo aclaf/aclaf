@@ -136,14 +136,13 @@ def validate_key_pattern(
         return (f"invalid regex pattern: {e}",)
 
     invalid_keys = [
-        key for key in value
+        key
+        for key in value
         if not isinstance(key, str) or not compiled_pattern.match(key)
     ]
 
     if invalid_keys:
-        invalid_str = ", ".join(
-            repr(k) for k in invalid_keys[:MAX_ERROR_DISPLAY_ITEMS]
-        )
+        invalid_str = ", ".join(repr(k) for k in invalid_keys[:MAX_ERROR_DISPLAY_ITEMS])
         count = len(invalid_keys)
         if count > MAX_ERROR_DISPLAY_ITEMS:
             return (
@@ -239,12 +238,7 @@ def validate_value_type(
                     f"First 5: {invalid_str}..."
                 ),
             )
-        return (
-            (
-                f"all values must be of type {type_names}. "
-                f"Invalid: {invalid_str}."
-            ),
-        )
+        return ((f"all values must be of type {type_names}. Invalid: {invalid_str}."),)
 
     return None
 
@@ -263,9 +257,7 @@ def validate_min_keys(
         return ("must be a mapping (dict).",)
 
     if len(value) < min_meta.min_keys:
-        return (
-            f"must have at least {min_meta.min_keys} keys, got {len(value)}.",
-        )
+        return (f"must have at least {min_meta.min_keys} keys, got {len(value)}.",)
 
     return None
 
@@ -284,8 +276,6 @@ def validate_max_keys(
         return ("must be a mapping (dict).",)
 
     if len(value) > max_meta.max_keys:
-        return (
-            f"must have at most {max_meta.max_keys} keys, got {len(value)}.",
-        )
+        return (f"must have at most {max_meta.max_keys} keys, got {len(value)}.",)
 
     return None

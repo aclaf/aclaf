@@ -1,4 +1,3 @@
-
 import time
 
 import pytest
@@ -9,7 +8,6 @@ from aclaf.parser.types import EXACTLY_ONE_ARITY, ONE_OR_MORE_ARITY, ZERO_OR_MOR
 
 @pytest.mark.security
 class TestDenialOfServiceProtection:
-
     def test_deeply_nested_equals_in_value(self):
         spec = CommandSpec(
             name="cmd",
@@ -106,7 +104,6 @@ class TestDenialOfServiceProtection:
 
 @pytest.mark.security
 class TestResourceExhaustionProtection:
-
     def test_memory_usage_with_large_positionals(self):
         spec = CommandSpec(
             name="cmd",
@@ -192,7 +189,6 @@ class TestResourceExhaustionProtection:
 
 @pytest.mark.security
 class TestAmbiguousInputHandling:
-
     def test_option_name_looks_like_value(self):
         spec = CommandSpec(
             name="cmd",
