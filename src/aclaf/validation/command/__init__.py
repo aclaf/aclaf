@@ -34,7 +34,12 @@ __all__ = [
 ]
 
 
-def default_command_validators() -> "ValidatorRegistry":
+def _create_default_command_validators() -> ValidatorRegistry:
+    """Creates default command validator registry.
+
+    This function is called once at module initialization to populate
+    the default validator registry. The registry is cached at module level.
+    """
     registry = ValidatorRegistry()
 
     # Shared validators
@@ -54,3 +59,17 @@ def default_command_validators() -> "ValidatorRegistry":
     registry.register(ConflictsWith, validate_conflicts_with)
 
     return registry
+
+
+# Module-level singleton - initialized once at import time
+_DEFAULT_COMMAND_VALIDATORS: ValidatorRegistry = _create_default_command_validators()
+
+
+def default_command_validators() -> ValidatorRegistry:
+    """Returns cached default command validator registry.
+
+    Note: This registry is shared across all callers. Modifications to the
+    returned registry will affect all subsequent calls. This is not thread-safe
+    for concurrent modifications.
+    """
+    return _DEFAULT_COMMAND_VALIDATORS

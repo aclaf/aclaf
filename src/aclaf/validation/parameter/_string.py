@@ -1,4 +1,4 @@
-from collections.abc import Iterator
+import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, cast
 from typing_extensions import override
@@ -8,8 +8,10 @@ from annotated_types import BaseMetadata, GroupedMetadata
 from aclaf.metadata import ParameterMetadata
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+
     from aclaf.types import ParameterValueMappingType, ParameterValueType
-    from aclaf.validators._registry import ValidatorMetadataType
+    from aclaf.validation._registry import ValidatorMetadataType
 
 
 @dataclass(slots=True, frozen=True)
@@ -25,10 +27,15 @@ def validate_not_blank(
     value: "ParameterValueType | ParameterValueMappingType | None",
     metadata: "ValidatorMetadataType",
 ) -> tuple[str, ...] | None:
-    metadata = cast("NotBlank", metadata)
-    errors: list[str] = []
-    if errors:
-        return tuple(errors)
+    if value is None:
+        return None
+
+    if not isinstance(value, str):
+        return ("must be a string.",)
+
+    if not value.strip():
+        return ("must not be blank.",)
+
     return None
 
 
@@ -41,10 +48,17 @@ def validate_pattern(
     value: "ParameterValueType | ParameterValueMappingType | None",
     metadata: "ValidatorMetadataType",
 ) -> tuple[str, ...] | None:
-    metadata = cast("Pattern", metadata)
-    errors: list[str] = []
-    if errors:
-        return tuple(errors)
+    if value is None:
+        return None
+
+    if not isinstance(value, str):
+        return ("must be a string.",)
+
+    pattern_meta = cast("Pattern", metadata)
+
+    if not re.match(pattern_meta.pattern, value):
+        return (f"must match pattern '{pattern_meta.pattern}'.",)
+
     return None
 
 
@@ -57,10 +71,19 @@ def validate_choices(
     value: "ParameterValueType | ParameterValueMappingType | None",
     metadata: "ValidatorMetadataType",
 ) -> tuple[str, ...] | None:
-    metadata = cast("Choices", metadata)
-    errors: list[str] = []
-    if errors:
-        return tuple(errors)
+    if value is None:
+        return None
+
+    if not isinstance(value, str):
+        return ("must be a string.",)
+
+    choices_meta = cast("Choices", metadata)
+
+    if value not in choices_meta.choices:
+        return (
+            f"must be one of {', '.join(repr(c) for c in choices_meta.choices)}.",
+        )
+
     return None
 
 
@@ -73,10 +96,17 @@ def validate_starts_with(
     value: "ParameterValueType | ParameterValueMappingType | None",
     metadata: "ValidatorMetadataType",
 ) -> tuple[str, ...] | None:
-    metadata = cast("StartsWith", metadata)
-    errors: list[str] = []
-    if errors:
-        return tuple(errors)
+    if value is None:
+        return None
+
+    if not isinstance(value, str):
+        return ("must be a string.",)
+
+    starts_meta = cast("StartsWith", metadata)
+
+    if not value.startswith(starts_meta.prefix):
+        return (f"must start with '{starts_meta.prefix}'.",)
+
     return None
 
 
@@ -89,10 +119,17 @@ def validate_ends_with(
     value: "ParameterValueType | ParameterValueMappingType | None",
     metadata: "ValidatorMetadataType",
 ) -> tuple[str, ...] | None:
-    metadata = cast("EndsWith", metadata)
-    errors: list[str] = []
-    if errors:
-        return tuple(errors)
+    if value is None:
+        return None
+
+    if not isinstance(value, str):
+        return ("must be a string.",)
+
+    ends_meta = cast("EndsWith", metadata)
+
+    if not value.endswith(ends_meta.suffix):
+        return (f"must end with '{ends_meta.suffix}'.",)
+
     return None
 
 
@@ -105,10 +142,17 @@ def validate_contains(
     value: "ParameterValueType | ParameterValueMappingType | None",
     metadata: "ValidatorMetadataType",
 ) -> tuple[str, ...] | None:
-    metadata = cast("Contains", metadata)
-    errors: list[str] = []
-    if errors:
-        return tuple(errors)
+    if value is None:
+        return None
+
+    if not isinstance(value, str):
+        return ("must be a string.",)
+
+    contains_meta = cast("Contains", metadata)
+
+    if contains_meta.substring not in value:
+        return (f"must contain '{contains_meta.substring}'.",)
+
     return None
 
 
@@ -121,10 +165,15 @@ def validate_lowercase(
     value: "ParameterValueType | ParameterValueMappingType | None",
     metadata: "ValidatorMetadataType",
 ) -> tuple[str, ...] | None:
-    metadata = cast("Lowercase", metadata)
-    errors: list[str] = []
-    if errors:
-        return tuple(errors)
+    if value is None:
+        return None
+
+    if not isinstance(value, str):
+        return ("must be a string.",)
+
+    if not value.islower():
+        return ("must be lowercase.",)
+
     return None
 
 
@@ -137,10 +186,15 @@ def validate_uppercase(
     value: "ParameterValueType | ParameterValueMappingType | None",
     metadata: "ValidatorMetadataType",
 ) -> tuple[str, ...] | None:
-    metadata = cast("Uppercase", metadata)
-    errors: list[str] = []
-    if errors:
-        return tuple(errors)
+    if value is None:
+        return None
+
+    if not isinstance(value, str):
+        return ("must be a string.",)
+
+    if not value.isupper():
+        return ("must be uppercase.",)
+
     return None
 
 
@@ -153,10 +207,15 @@ def validate_alphanumeric(
     value: "ParameterValueType | ParameterValueMappingType | None",
     metadata: "ValidatorMetadataType",
 ) -> tuple[str, ...] | None:
-    metadata = cast("Alphanumeric", metadata)
-    errors: list[str] = []
-    if errors:
-        return tuple(errors)
+    if value is None:
+        return None
+
+    if not isinstance(value, str):
+        return ("must be a string.",)
+
+    if not value.isalnum():
+        return ("must be alphanumeric (letters and numbers only).",)
+
     return None
 
 
@@ -169,10 +228,15 @@ def validate_alpha(
     value: "ParameterValueType | ParameterValueMappingType | None",
     metadata: "ValidatorMetadataType",
 ) -> tuple[str, ...] | None:
-    metadata = cast("Alpha", metadata)
-    errors: list[str] = []
-    if errors:
-        return tuple(errors)
+    if value is None:
+        return None
+
+    if not isinstance(value, str):
+        return ("must be a string.",)
+
+    if not value.isalpha():
+        return ("must be alphabetic (letters only).",)
+
     return None
 
 
@@ -185,10 +249,15 @@ def validate_numeric(
     value: "ParameterValueType | ParameterValueMappingType | None",
     metadata: "ValidatorMetadataType",
 ) -> tuple[str, ...] | None:
-    metadata = cast("Numeric", metadata)
-    errors: list[str] = []
-    if errors:
-        return tuple(errors)
+    if value is None:
+        return None
+
+    if not isinstance(value, str):
+        return ("must be a string.",)
+
+    if not value.isnumeric():
+        return ("must be numeric (numbers only).",)
+
     return None
 
 
@@ -201,10 +270,15 @@ def validate_printable(
     value: "ParameterValueType | ParameterValueMappingType | None",
     metadata: "ValidatorMetadataType",
 ) -> tuple[str, ...] | None:
-    metadata = cast("Printable", metadata)
-    errors: list[str] = []
-    if errors:
-        return tuple(errors)
+    if value is None:
+        return None
+
+    if not isinstance(value, str):
+        return ("must be a string.",)
+
+    if not value.isprintable():
+        return ("must contain only printable characters.",)
+
     return None
 
 
@@ -223,7 +297,8 @@ class StringValidations(GroupedMetadata):
     numeric: bool = False
     printable: bool = False
 
-    def __iter__(self) -> Iterator[BaseMetadata]:
+    @override
+    def __iter__(self) -> "Iterator[BaseMetadata]":
         if self.not_blank:
             yield NotBlank()
         if self.pattern is not None:
