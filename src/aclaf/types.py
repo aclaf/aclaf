@@ -8,10 +8,6 @@ from typing_extensions import override
 
 from annotated_types import BaseMetadata, Ge, Gt, Le, Lt
 
-from aclaf.parser._types import (
-    ParsedParameterValue,
-)
-
 __all__ = [
     "FiniteFloat",
     "FromArgument",
@@ -80,6 +76,13 @@ NonNegativeFloat = Annotated[float, Ge(0)]
 
 StrictFloat = Annotated[float, Strict()]
 FiniteFloat = Annotated[float, AllowInfNan(False)]  # noqa: FBT003
+
+
+ParsedOptionValue = (
+    bool | int | str | tuple[bool, ...] | tuple[str, ...] | tuple[tuple[str, ...], ...]
+)
+ParsedPositionalValue = str | tuple[str, ...]
+ParsedParameterValue = ParsedOptionValue | ParsedPositionalValue
 
 
 class ParameterKind(IntEnum):

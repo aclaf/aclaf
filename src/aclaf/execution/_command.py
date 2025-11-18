@@ -33,13 +33,13 @@ if TYPE_CHECKING:
     from collections.abc import AsyncGenerator, Coroutine, Mapping, Sequence
 
     from aclaf.conversion import ConverterRegistry
-    from aclaf.parser import ParsedParameterValue, ParseResult
+    from aclaf.parser import ParseResult
     from aclaf.response import (
         AsyncResponseType,
         ResponseType,
         SyncResponseType,
     )
-    from aclaf.types import ParameterValueMappingType
+    from aclaf.types import ParameterValueMappingType, ParsedParameterValue
     from aclaf.validation import (
         ValidatorRegistry,
     )
@@ -337,7 +337,9 @@ class RuntimeCommand:
             # Check if a default exists by looking at arity (min=0 implies
             # optional with default) or explicit default/default_factory
             has_default = (
-                parameter.default_factory is not None or parameter.arity.min == 0
+                parameter.default is not None
+                or parameter.default_factory is not None
+                or parameter.arity.min == 0
             )
             if should_use_default and has_default:
                 if parameter.default_factory is not None:

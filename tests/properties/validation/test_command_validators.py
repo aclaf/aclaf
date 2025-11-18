@@ -369,7 +369,7 @@ def test_requires_error_format_consistent(source, required):
     metadata = Requires(source=source, required=required)
 
     # Force failure: source provided, required parameters missing
-    value = {source: True}
+    value: dict[str, bool | None] = {source: True}
     for req in required:
         value[req] = None
 

@@ -12,8 +12,9 @@ from aclaf.parser._configuration import (
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    from aclaf.types import ParsedOptionValue, ParsedPositionalValue
+
     from ._command import CommandSpec
-    from ._types import ParsedOptionValue, ParsedPositionalValue
 
 
 @dataclass(slots=True, frozen=True, unsafe_hash=True)

@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from aclaf.exceptions import AclafError
 
 if TYPE_CHECKING:
-    from aclaf.parser import ParsedParameterValue
+    from aclaf.types import ParsedParameterValue
 
 
 class ConversionError(AclafError):

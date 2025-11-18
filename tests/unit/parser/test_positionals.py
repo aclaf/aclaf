@@ -152,7 +152,7 @@ class TestSinglePositional:
         )
         parser = Parser(spec)
         result = parser.parse(args)
-        assert result.positionals["file"].value == ("file.txt",)
+        assert result.positionals["file"].value == "file.txt"
 
     def test_zero_or_one_arity_with_multiple_args(self):
         args = ["file1.txt", "file2.txt"]
@@ -162,7 +162,7 @@ class TestSinglePositional:
         )
         parser = Parser(spec)
         result = parser.parse(args)
-        assert result.positionals["file"].value == ("file1.txt",)
+        assert result.positionals["file"].value == "file1.txt"
 
     def test_fixed_arity_two(self):
         args = ["file1.txt", "file2.txt"]
@@ -367,18 +367,18 @@ class TestMultiplePositionals:
         # No args
         empty_args: list[str] = []
         result = parser.parse(empty_args)
-        assert result.positionals["first"].value == ()
-        assert result.positionals["second"].value == ()
+        assert result.positionals["first"].value == ""
+        assert result.positionals["second"].value == ""
 
         # One arg
         result = parser.parse(["a"])
-        assert result.positionals["first"].value == ("a",)
-        assert result.positionals["second"].value == ()
+        assert result.positionals["first"].value == "a"
+        assert result.positionals["second"].value == ""
 
         # Two args
         result = parser.parse(["a", "b"])
-        assert result.positionals["first"].value == ("a",)
-        assert result.positionals["second"].value == ("b",)
+        assert result.positionals["first"].value == "a"
+        assert result.positionals["second"].value == "b"
 
     def test_sufficient_args_passes(self):
         spec = CommandSpec(

@@ -169,6 +169,7 @@ class TestValidatorCascading:
         # Child has its own registry before mounting
         assert child.parameter_validators is child_registry
         assert child.parameter_validators is not parent.parameter_validators
+        assert child.parameter_validators is not None
         assert child.parameter_validators.has_validator(CascadeMetadata2)
         assert parent.parameter_validators is not None
         assert parent.parameter_validators.has_validator(CascadeMetadata6)
@@ -180,6 +181,7 @@ class TestValidatorCascading:
         assert child.parameter_validators is child_registry
         assert child.parameter_validators is not parent.parameter_validators
         assert parent.parameter_validators is not None
+        assert child.parameter_validators is not None
         assert child.parameter_validators.has_validator(CascadeMetadata6)
         # Child's original validator is preserved (child wins)
         assert child.parameter_validators.has_validator(CascadeMetadata2)

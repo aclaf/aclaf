@@ -11,7 +11,7 @@ This module provides validators for sequence (list/tuple/set) values:
 
 from collections.abc import Callable, Sequence as SequenceABC
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from annotated_types import BaseMetadata
 
@@ -38,21 +38,21 @@ class SequenceContains(BaseMetadata):
 class AllMatch(BaseMetadata):
     """All items match predicate/pattern."""
 
-    predicate: Callable[[object], bool]
+    predicate: Callable[[Any], bool]
 
 
 @dataclass(slots=True, frozen=True)
 class AnyMatch(BaseMetadata):
     """At least one item matches predicate."""
 
-    predicate: Callable[[object], bool]
+    predicate: Callable[[Any], bool]
 
 
 @dataclass(slots=True, frozen=True)
 class NoneMatch(BaseMetadata):
     """No items match predicate/pattern."""
 
-    predicate: Callable[[object], bool]
+    predicate: Callable[[Any], bool]
 
 
 @dataclass(slots=True, frozen=True)

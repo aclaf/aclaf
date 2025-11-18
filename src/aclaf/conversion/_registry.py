@@ -5,22 +5,20 @@ from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import (
+    TYPE_CHECKING,
     Annotated,
     Any,
-    TypeAlias,
     TypeVar,
     cast,
     get_args,
     get_origin,
 )
 
-from annotated_types import BaseMetadata
 from typing_inspection import typing_objects
 from typing_inspection.introspection import AnnotationSource
 
 from aclaf._internal._inspect import inspect_annotation
 from aclaf.logging import Logger, NullLogger
-from aclaf.parser import ParsedParameterValue
 from aclaf.types import FromArgument
 
 from ._exceptions import ConversionError
@@ -32,16 +30,16 @@ from ._standard import (
     convert_str,
 )
 
+if TYPE_CHECKING:
+    from annotated_types import BaseMetadata
+
+    from aclaf.types import ParsedParameterValue
+
+    from ._types import ConverterFunctionType
+
 T = TypeVar("T")
 K = TypeVar("K")
 V = TypeVar("V")
-
-# Non-generic converter function type - accepts ParsedParameterValue | None and
-# optional metadata, returns Any since we can't statically know the return
-# type at the registry level
-ConverterFunctionType: TypeAlias = Callable[
-    [ParsedParameterValue | None, tuple[BaseMetadata, ...] | None], Any
-]
 
 
 @dataclass(slots=True)
@@ -58,7 +56,7 @@ class ConverterRegistry:
         all runtime type errors.
     """
 
-    converters: dict[type[Any], ConverterFunctionType] = field(
+    converters: dict[type[Any], "ConverterFunctionType"] = field(
         default_factory=dict, init=False, repr=False
     )
     logger: Logger = field(default_factory=NullLogger)
@@ -70,7 +68,7 @@ class ConverterRegistry:
         self,
         type_: type[T],
         converter: Callable[
-            [ParsedParameterValue | None, tuple[BaseMetadata, ...] | None], T
+            ["ParsedParameterValue | None", tuple["BaseMetadata", ...] | None], T
         ],
     ) -> None:
         """Register a converter function for a specific type.
@@ -120,7 +118,9 @@ class ConverterRegistry:
     def get_converter(  # noqa: PLR0911
         self, type_: Any
     ) -> (
-        Callable[[ParsedParameterValue | None, tuple[BaseMetadata, ...] | None], Any]
+        Callable[
+            ["ParsedParameterValue | None", tuple["BaseMetadata", ...] | None], Any
+        ]
         | None
     ):
         """Retrieve a converter function for the given type.
@@ -153,8 +153,8 @@ class ConverterRegistry:
 
                 # Create wrapper that merges Annotated metadata with passed metadata
                 def annotated_converter(
-                    value: ParsedParameterValue | None,
-                    extra_metadata: tuple[BaseMetadata, ...] | None = None,
+                    value: "ParsedParameterValue | None",
+                    extra_metadata: tuple["BaseMetadata", ...] | None = None,
                 ) -> Any:
                     # Merge Annotated metadata with passed metadata
                     combined_metadata: tuple[Any, ...] = metadata_from_type + (
@@ -184,7 +184,7 @@ class ConverterRegistry:
     def _try_protocol_converter(
         self, type_: type[T]
     ) -> (
-        Callable[[ParsedParameterValue | None, tuple[BaseMetadata, ...] | None], T]
+        Callable[["ParsedParameterValue | None", tuple["BaseMetadata", ...] | None], T]
         | None
     ):
         """Attempt to create a converter for a type implementing ConvertibleProtocol.
@@ -201,8 +201,8 @@ class ConverterRegistry:
                 return None
 
             def convert_protocol(
-                value: ParsedParameterValue | None,
-                metadata: tuple[BaseMetadata, ...] | None = None,
+                value: "ParsedParameterValue | None",
+                metadata: tuple["BaseMetadata", ...] | None = None,
             ) -> T:
                 if value is None:
                     raise ConversionError(None, type_, "Value cannot be None")
@@ -221,7 +221,7 @@ class ConverterRegistry:
     def _try_generic_converter(
         self, type_: type[T]
     ) -> (
-        Callable[[ParsedParameterValue | None, tuple[BaseMetadata, ...] | None], T]
+        Callable[["ParsedParameterValue | None", tuple["BaseMetadata", ...] | None], T]
         | None
     ):
         """Attempt to create a converter for a generic type.
@@ -262,7 +262,7 @@ class ConverterRegistry:
     def _try_enum_converter(
         self, type_: type[T]
     ) -> (
-        Callable[[ParsedParameterValue | None, tuple[BaseMetadata, ...] | None], T]
+        Callable[["ParsedParameterValue | None", tuple["BaseMetadata", ...] | None], T]
         | None
     ):
         try:
@@ -272,8 +272,8 @@ class ConverterRegistry:
             return None
 
         def convert_enum(
-            value: ParsedParameterValue | None,
-            _metadata: tuple[BaseMetadata, ...] | None = None,
+            value: "ParsedParameterValue | None",
+            _metadata: tuple["BaseMetadata", ...] | None = None,
         ) -> T:
             if value is None:
                 raise ConversionError(None, type_, "Value cannot be None")
@@ -322,9 +322,9 @@ class ConverterRegistry:
 
     def convert(
         self,
-        value: ParsedParameterValue | None,
+        value: "ParsedParameterValue | None",
         target_type: Any,
-        metadata: tuple[BaseMetadata, ...] | None = None,
+        metadata: tuple["BaseMetadata", ...] | None = None,
     ) -> Any:
         """Convert a parsed parameter value to the target type.
 
@@ -357,7 +357,7 @@ class ConverterRegistry:
         self,
         origin: type[Any],
         args: tuple[type[Any], ...],
-    ) -> ConverterFunctionType | None:
+    ) -> "ConverterFunctionType | None":
         """Create a converter for a generic type based on its origin and arguments.
 
         Args:
@@ -399,7 +399,9 @@ class ConverterRegistry:
 
     def _make_union_converter(
         self, args: tuple[type[Any], ...]
-    ) -> Callable[[ParsedParameterValue | None, tuple[BaseMetadata, ...] | None], Any]:
+    ) -> Callable[
+        ["ParsedParameterValue | None", tuple["BaseMetadata", ...] | None], Any
+    ]:
         """Create a converter that tries each union member type in order.
 
         Args:
@@ -410,8 +412,8 @@ class ConverterRegistry:
         """
 
         def convert_union(
-            value: ParsedParameterValue | None,
-            metadata: tuple[BaseMetadata, ...] | None = None,
+            value: "ParsedParameterValue | None",
+            metadata: tuple["BaseMetadata", ...] | None = None,
         ) -> Any:
             errors: list[Exception] = []
 
@@ -453,8 +455,8 @@ class ConverterRegistry:
         return convert_union
 
     def _make_sequence_converter(
-        self, origin: type[Any], element_converter: ConverterFunctionType
-    ) -> ConverterFunctionType:
+        self, origin: type[Any], element_converter: "ConverterFunctionType"
+    ) -> "ConverterFunctionType":
         """Create a converter for sequence types.
 
         Args:
@@ -466,8 +468,8 @@ class ConverterRegistry:
         """
 
         def convert_sequence(  # noqa: PLR0911
-            value: ParsedParameterValue | None,
-            metadata: tuple[BaseMetadata, ...] | None = None,
+            value: "ParsedParameterValue | None",
+            metadata: tuple["BaseMetadata", ...] | None = None,
         ) -> Any:
             if value is None:
                 raise ConversionError(None, origin, "Cannot convert None to sequence")
@@ -507,9 +509,9 @@ class ConverterRegistry:
 
     def _make_mapping_converter(
         self,
-        key_converter: ConverterFunctionType,
-        value_converter: ConverterFunctionType,
-    ) -> ConverterFunctionType:
+        key_converter: "ConverterFunctionType",
+        value_converter: "ConverterFunctionType",
+    ) -> "ConverterFunctionType":
         """Create a converter for mapping types.
 
         Args:
@@ -521,8 +523,8 @@ class ConverterRegistry:
         """
 
         def convert_mapping(
-            value: ParsedParameterValue | None,
-            metadata: tuple[BaseMetadata, ...] | None = None,
+            value: "ParsedParameterValue | None",
+            metadata: tuple["BaseMetadata", ...] | None = None,
         ) -> dict[Any, Any]:
             if value is None:
                 raise ConversionError(None, dict, "Cannot convert None to mapping")

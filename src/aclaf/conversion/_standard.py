@@ -6,7 +6,7 @@ from ._exceptions import ConversionError
 if TYPE_CHECKING:
     from annotated_types import BaseMetadata
 
-    from aclaf.parser import ParsedParameterValue
+    from aclaf.types import ParsedParameterValue
 
 
 def convert_str(

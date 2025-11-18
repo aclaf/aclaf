@@ -68,7 +68,7 @@ def git_cli(console: MockConsole) -> App:
             console.print(f"[log] max_count={max_count}")
 
     @app.command()
-    def branch(name: tuple[str, ...] = (), all: Annotated[bool, "-a"] = False):  # pyright: ignore[reportUnusedFunction]
+    def branch(name: tuple[str, ...] = (), all: Annotated[bool, "-a"] = False):
         console.print(f"[branch] name={name!r}")
         if all:
             console.print("[branch] all=True")
@@ -78,16 +78,16 @@ def git_cli(console: MockConsole) -> App:
         console.print("[remote] invoked")
 
     @remote.command(name="add")
-    def remote_add(name: str, url: str):  # pyright: ignore[reportUnusedFunction]
+    def remote_add(name: str, url: str):
         console.print(f"[remote add] name={name}")
         console.print(f"[remote add] url={url}")
 
     @remote.command(name="remove", aliases=["rm"])
-    def remote_remove(name: str):  # pyright: ignore[reportUnusedFunction]
+    def remote_remove(name: str):
         console.print(f"[remote remove] name={name}")
 
     @app.command()
-    def checkout(target: str, branch: Annotated[bool, "-b"] = False):  # pyright: ignore[reportUnusedFunction]
+    def checkout(target: str, branch: Annotated[bool, "-b"] = False):
         console.print(f"[checkout] target={target}")
         if branch:
             console.print("[checkout] branch=True")
@@ -225,7 +225,7 @@ class TestGitAddCommand:
         app = App("git", console=console)
 
         @app.command()
-        def add(files: tuple[str, ...] = (), all: Annotated[bool, "-A"] = False):  # pyright: ignore[reportUnusedFunction]
+        def add(files: tuple[str, ...] = (), all: Annotated[bool, "-A"] = False):
             console.print(f"[add] files={files!r}")
             if all:
                 console.print("[add] all=True")
@@ -248,7 +248,7 @@ class TestGitValidationFailures:
         def clone(
             repository: str,
             depth: Annotated[CloneDepth | None, Opt()] = None,
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             console.print(f"[clone] repository={repository}")
             if depth:
                 console.print(f"[clone] depth={depth}")
@@ -266,7 +266,7 @@ class TestGitValidationFailures:
         def clone(
             repository: str,
             depth: Annotated[CloneDepth | None, Opt()] = None,
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             console.print(f"[clone] repository={repository}")
             if depth:
                 console.print(f"[clone] depth={depth}")
@@ -283,7 +283,7 @@ class TestGitValidationFailures:
         @app.command()
         def log(
             max_count: Annotated[CommitCount | None, "-n"] = None,
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             if max_count:
                 console.print(f"[log] max_count={max_count}")
 
@@ -299,7 +299,7 @@ class TestGitValidationFailures:
         @app.command()
         def log(
             max_count: Annotated[CommitCount | None, "-n"] = None,
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             if max_count:
                 console.print(f"[log] max_count={max_count}")
 
@@ -316,7 +316,7 @@ class TestGitValidationFailures:
         def fetch(
             remotes: tuple[str, ...] = (),
             depth: Annotated[CloneDepth | None, Opt()] = None,
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             if remotes:
                 console.print(f"[fetch] remotes={remotes!r}")
             if depth:
@@ -334,7 +334,7 @@ class TestGitValidationFailures:
         @app.command()
         def shortlog(
             max_count: Annotated[CommitCount | None, "-n"] = None,
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             if max_count:
                 console.print(f"[shortlog] max_count={max_count}")
 
@@ -358,7 +358,7 @@ class TestGitCommandValidators:
             repository: str,
             depth: Annotated[CloneDepth | None, Opt()] = None,
             shallow_since: Annotated[str | None, Opt()] = None,
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             console.print(f"[clone] repository={repository}")
             if depth:
                 console.print(f"[clone] depth={depth}")
@@ -390,7 +390,7 @@ class TestGitCommandValidators:
         def log(
             oneline: bool = False,
             format: Annotated[str | None, Opt()] = None,
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             if oneline:
                 console.print("[log] oneline=True")
             if format:
@@ -405,11 +405,14 @@ class TestGitCommandValidators:
         assert "mutually exclusive" in str(exc_info.value).lower()
 
     @pytest.mark.xfail(
-        reason="AtLeastOneOf doesn't distinguish between user-provided boolean flags "
-        "and default values. Boolean flags with defaults are always present in the "
-        "parameter dict, so validation incorrectly considers them 'provided' even "
-        "when the user didn't specify them. This requires tracking which parameters "
-        "were explicitly set by the user vs. which are defaults."
+        reason=(
+            "AtLeastOneOf doesn't distinguish between user-provided boolean "
+            "flags and default values. Boolean flags with defaults are always "
+            "present in the parameter dict, so validation incorrectly considers "
+            "them 'provided' even when the user didn't specify them. This "
+            "requires tracking which parameters were explicitly set by the user "
+            "vs. which are defaults."
+        )
     )
     def test_commit_amend_requires_message_or_no_edit(self, console: MockConsole):
         """Test that --amend requires either -m or --no-edit."""
@@ -420,7 +423,7 @@ class TestGitCommandValidators:
             message: Annotated[str | None, "-m"] = None,
             amend: bool = False,
             no_edit: bool = False,
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             if message:
                 console.print(f"[commit] message={message}")
             if amend:
@@ -444,10 +447,10 @@ class TestGitCommandValidators:
         """Test branch name pattern validation."""
         app = App("git", console=console)
 
-        branch_name = Annotated[str, Pattern(r"^[a-zA-Z0-9/_-]+$")]
-
         @app.command()
-        def branch(name: branch_name):  # pyright: ignore[reportUnusedFunction]
+        def branch(
+            name: Annotated[str, Pattern(r"^[a-zA-Z0-9/_-]+$")],
+        ):
             console.print(f"[branch] name={name}")
 
         with pytest.raises(ValidationError) as exc_info:
@@ -461,20 +464,20 @@ class TestComplexGitScenarios:
         app = App("git", console=console)
 
         @app.command()
-        def commit(message: Annotated[str, "-m"], all: Annotated[bool, "-a"] = False):  # pyright: ignore[reportUnusedFunction]
+        def commit(message: Annotated[str, "-m"], all: Annotated[bool, "-a"] = False):
             console.print(f"[commit] message={message}")
             if all:
                 console.print("[commit] all=True")
 
         @app.command()
-        def log(oneline: bool = False, graph: bool = False):  # pyright: ignore[reportUnusedFunction]
+        def log(oneline: bool = False, graph: bool = False):
             if oneline:
                 console.print("[log] oneline=True")
             if graph:
                 console.print("[log] graph=True")
 
         @app.command()
-        def branch(names: tuple[str, ...] = (), delete: Annotated[bool, "-d"] = False):  # pyright: ignore[reportUnusedFunction]
+        def branch(names: tuple[str, ...] = (), delete: Annotated[bool, "-d"] = False):
             console.print(f"[branch] names={names!r}")
             if delete:
                 console.print("[branch] delete=True")
@@ -512,7 +515,7 @@ class TestComplexGitScenarios:
                 console.print("[git] quiet=True")
 
         @app.command()
-        def status(short: Annotated[bool, "-s"] = False):  # pyright: ignore[reportUnusedFunction]
+        def status(short: Annotated[bool, "-s"] = False):
             if short:
                 console.print("[status] short=True")
 
@@ -532,7 +535,7 @@ class TestGitCloneCommand:
         def clone(
             repository: str,
             depth: Annotated[CloneDepth | None, Opt()] = None,
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             console.print(f"[clone] repository={repository}")
             if depth:
                 console.print(f"[clone] depth={depth}")
@@ -554,7 +557,7 @@ class TestGitFetchCommand:
             remotes: tuple[str, ...] = (),
             depth: Annotated[CloneDepth | None, Opt()] = None,
             prune: Annotated[bool, "-p"] = False,
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             if remotes:
                 console.print(f"[fetch] remotes={remotes!r}")
             if depth:
@@ -580,7 +583,7 @@ class TestGitShortlogCommand:
             max_count: Annotated[CommitCount | None, "-n"] = None,
             summary: Annotated[bool, "-s"] = False,
             numbered: Annotated[bool, Opt()] = False,
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             if max_count:
                 console.print(f"[shortlog] max_count={max_count}")
             if summary:

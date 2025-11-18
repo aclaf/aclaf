@@ -1,5 +1,5 @@
 from ._exceptions import ConversionError
-from ._registry import ConverterFunctionType, ConverterRegistry
+from ._registry import ConverterRegistry
 from ._standard import (
     convert_bool,
     convert_float,
@@ -7,6 +7,7 @@ from ._standard import (
     convert_path,
     convert_str,
 )
+from ._types import ConverterFunctionType
 
 __all__ = [
     "ConversionError",

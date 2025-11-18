@@ -142,6 +142,8 @@ class TestCascadingPerformance:
             value: int = 0
 
         class BenchType:
+            value: int
+
             def __init__(self, value: int) -> None:
                 self.value = value
 

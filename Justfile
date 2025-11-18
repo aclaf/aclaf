@@ -62,6 +62,10 @@ lint-python: install
   uv run --frozen ruff format --check .
   uv run --frozen basedpyright
 
+# Lint import dependencies
+lint-imports: install
+  uv run --frozen lint-imports
+
 # Lint documentation
 lint-docs: install
   yamllint --strict mkdocs.yml

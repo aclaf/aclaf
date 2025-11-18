@@ -78,12 +78,12 @@ def kubectl_cli_with_namespace(console: MockConsole) -> App:
     app = App("kubectl", console=console)
 
     @app.handler()
-    def kubectl(namespace: Annotated[str | None, "-n"] = None):  # pyright: ignore[reportUnusedFunction]
+    def kubectl(namespace: Annotated[str | None, "-n"] = None):
         if namespace:
             console.print(f"[kubectl] namespace={namespace}")
 
     @app.command()
-    def get(resource_type: str):  # pyright: ignore[reportUnusedFunction]
+    def get(resource_type: str):
         console.print(f"[get] resource_type={resource_type}")
 
     return app
@@ -176,7 +176,7 @@ class TestKubectlDescribeCommand:
         app = App("kubectl", console=console)
 
         @app.command()
-        def describe(resource_type: str, resource_name: str):  # pyright: ignore[reportUnusedFunction]
+        def describe(resource_type: str, resource_name: str):
             console.print(f"[describe] resource_type={resource_type}")
             console.print(f"[describe] resource_name={resource_name}")
 
@@ -191,7 +191,7 @@ class TestKubectlDescribeCommand:
         app = App("kubectl", console=console)
 
         @app.command()
-        def describe(resource_type: str, resource_name: str):  # pyright: ignore[reportUnusedFunction]
+        def describe(resource_type: str, resource_name: str):
             console.print(f"[describe] resource_type={resource_type}")
             console.print(f"[describe] resource_name={resource_name}")
 
@@ -260,7 +260,7 @@ class TestKubectlApplyCommand:
         app = App("kubectl", console=console)
 
         @app.command()
-        def apply(filename: Annotated[tuple[str, ...], "-f", Collect()]):  # pyright: ignore[reportUnusedFunction]
+        def apply(filename: Annotated[tuple[str, ...], "-f", Collect()]):
             console.print(f"[apply] filename={filename!r}")
 
         app(["apply", "-f", "manifest.yaml"])
@@ -273,7 +273,7 @@ class TestKubectlApplyCommand:
         app = App("kubectl", console=console)
 
         @app.command()
-        def apply(filename: Annotated[tuple[str, ...], "-f", Collect()]):  # pyright: ignore[reportUnusedFunction]
+        def apply(filename: Annotated[tuple[str, ...], "-f", Collect()]):
             console.print(f"[apply] filename={filename!r}")
 
         app(["apply", "-f", "file1.yaml", "-f", "file2.yaml"])
@@ -288,7 +288,7 @@ class TestKubectlLogsCommand:
         app = App("kubectl", console=console)
 
         @app.command()
-        def logs(pod_name: str):  # pyright: ignore[reportUnusedFunction]
+        def logs(pod_name: str):
             console.print(f"[logs] pod_name={pod_name}")
 
         app(["logs", "my-pod"])
@@ -301,7 +301,7 @@ class TestKubectlLogsCommand:
         app = App("kubectl", console=console)
 
         @app.command()
-        def logs(pod_name: str, follow: Annotated[bool, "-f"] = False):  # pyright: ignore[reportUnusedFunction]
+        def logs(pod_name: str, follow: Annotated[bool, "-f"] = False):
             console.print(f"[logs] pod_name={pod_name}")
             if follow:
                 console.print("[logs] follow=True")
@@ -317,7 +317,7 @@ class TestKubectlLogsCommand:
         app = App("kubectl", console=console)
 
         @app.command()
-        def logs(pod_name: str, follow: Annotated[bool, "-f"] = False):  # pyright: ignore[reportUnusedFunction]
+        def logs(pod_name: str, follow: Annotated[bool, "-f"] = False):
             console.print(f"[logs] pod_name={pod_name}")
             if follow:
                 console.print("[logs] follow=True")
@@ -336,7 +336,7 @@ class TestKubectlLogsCommand:
             pod_name: NonEmptyResourceName,
             tail: Annotated[TailLines | None, Opt()] = None,
             follow: Annotated[bool, "-f"] = False,
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             console.print(f"[logs] pod_name={pod_name}")
             if tail:
                 console.print(f"[logs] tail={tail}")
@@ -402,12 +402,12 @@ class TestKubectlGlobalFlags:
         app = App("kubectl", console=console)
 
         @app.handler()
-        def kubectl(context: Annotated[str | None, Opt()] = None):  # pyright: ignore[reportUnusedFunction]
+        def kubectl(context: Annotated[str | None, Opt()] = None):
             if context:
                 console.print(f"[kubectl] context={context}")
 
         @app.command()
-        def get(resource_type: str):  # pyright: ignore[reportUnusedFunction]
+        def get(resource_type: str):
             console.print(f"[get] resource_type={resource_type}")
 
         app(["--context", "production", "get", "pods"])
@@ -421,12 +421,12 @@ class TestKubectlGlobalFlags:
         app = App("kubectl", console=console)
 
         @app.handler()
-        def kubectl(kubeconfig: Annotated[str | None, Opt()] = None):  # pyright: ignore[reportUnusedFunction]
+        def kubectl(kubeconfig: Annotated[str | None, Opt()] = None):
             if kubeconfig:
                 console.print(f"[kubectl] kubeconfig={kubeconfig}")
 
         @app.command()
-        def get(resource_type: str):  # pyright: ignore[reportUnusedFunction]
+        def get(resource_type: str):
             console.print(f"[get] resource_type={resource_type}")
 
         app(["--kubeconfig", "~/.kube/custom-config", "get", "pods"])
@@ -449,7 +449,7 @@ class TestKubectlGlobalFlags:
                 console.print(f"[kubectl] context={context}")
 
         @app.command()
-        def get(resource_type: str, output: Annotated[str | None, "-o"] = None):  # pyright: ignore[reportUnusedFunction]
+        def get(resource_type: str, output: Annotated[str | None, "-o"] = None):
             console.print(f"[get] resource_type={resource_type}")
             if output:
                 console.print(f"[get] output={output}")
@@ -485,7 +485,7 @@ class TestKubectlValidationFailures:
             resource_type: NonEmptyResourceName,
             resource_name: NonEmptyResourceName,
             replicas: Annotated[ReplicaCount, Opt()],
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             console.print(f"[scale] resource_type={resource_type}")
             console.print(f"[scale] resource_name={resource_name}")
             console.print(f"[scale] replicas={replicas}")
@@ -504,7 +504,7 @@ class TestKubectlValidationFailures:
             resource_type: NonEmptyResourceName,
             resource_name: NonEmptyResourceName,
             replicas: Annotated[ReplicaCount, Opt()],
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             console.print(f"[scale] resource_type={resource_type}")
             console.print(f"[scale] resource_name={resource_name}")
             console.print(f"[scale] replicas={replicas}")
@@ -524,7 +524,7 @@ class TestKubectlValidationFailures:
             resource_name: NonEmptyResourceName,
             for_condition: Annotated[str, "--for"],
             timeout: Annotated[TimeoutSeconds | None, Opt()] = None,
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             console.print(f"[wait] resource_type={resource_type}")
             console.print(f"[wait] resource_name={resource_name}")
             console.print(f"[wait] for_condition={for_condition}")
@@ -556,7 +556,7 @@ class TestKubectlValidationFailures:
             resource_name: NonEmptyResourceName,
             for_condition: Annotated[str, "--for"],
             timeout: Annotated[TimeoutSeconds | None, Opt()] = None,
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             console.print(f"[wait] resource_type={resource_type}")
             console.print(f"[wait] resource_name={resource_name}")
             console.print(f"[wait] for_condition={for_condition}")
@@ -586,7 +586,7 @@ class TestKubectlValidationFailures:
         def logs(
             pod_name: NonEmptyResourceName,
             tail: Annotated[TailLines | None, Opt()] = None,
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             console.print(f"[logs] pod_name={pod_name}")
             if tail:
                 console.print(f"[logs] tail={tail}")
@@ -604,7 +604,7 @@ class TestKubectlValidationFailures:
         def logs(
             pod_name: NonEmptyResourceName,
             tail: Annotated[TailLines | None, Opt()] = None,
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             console.print(f"[logs] pod_name={pod_name}")
             if tail:
                 console.print(f"[logs] tail={tail}")
@@ -622,7 +622,7 @@ class TestKubectlValidationFailures:
         def describe(
             resource_type: NonEmptyResourceName,
             resource_name: NonEmptyResourceName,
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             console.print(f"[describe] resource_type={resource_type}")
             console.print(f"[describe] resource_name={resource_name}")
 
@@ -640,7 +640,7 @@ class TestKubectlValidationFailures:
             resource_type: NonEmptyResourceName,
             resource_name: NonEmptyResourceName,
             replicas: Annotated[ReplicaCount, Opt()],
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             console.print(f"[scale] resource_type={resource_type}")
             console.print(f"[scale] resource_name={resource_name}")
             console.print(f"[scale] replicas={replicas}")
@@ -661,7 +661,7 @@ class TestKubectlCommandValidators:
         app = App("kubectl", console=console)
 
         @app.handler()
-        def kubectl(namespace: Annotated[str | None, "-n"] = None):  # pyright: ignore[reportUnusedFunction]
+        def kubectl(namespace: Annotated[str | None, "-n"] = None):
             if namespace:
                 console.print(f"[kubectl] namespace={namespace}")
 
@@ -670,7 +670,7 @@ class TestKubectlCommandValidators:
             resource_type: str,
             all_namespaces: Annotated[bool, "-A"] = False,
             namespace: Annotated[str | None, Opt()] = None,
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             console.print(f"[get] resource_type={resource_type}")
             if all_namespaces:
                 console.print("[get] all_namespaces=True")
@@ -700,7 +700,7 @@ class TestKubectlCommandValidators:
             pod_name: str,
             interactive: Annotated[bool, Flag("-i")] = False,
             tty: Annotated[bool, Flag("-t")] = False,
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             console.print(f"[exec] pod_name={pod_name}")
             if interactive:
                 console.print("[exec] interactive=True")
@@ -727,7 +727,7 @@ class TestKubectlCommandValidators:
             resource_type: str,
             resource_name: str,
             replicas: Annotated[ReplicaCount | None, Opt()] = None,
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             console.print(f"[scale] resource_type={resource_type}")
             console.print(f"[scale] resource_name={resource_name}")
             if replicas is not None:
@@ -745,13 +745,11 @@ class TestKubectlCommandValidators:
         """Test resource name DNS-1123 pattern validation."""
         app = App("kubectl", console=console)
 
-        dns_1123_name = Annotated[str, Pattern(r"^[a-z0-9]([-a-z0-9]*[a-z0-9])?$")]
-
         @app.command()
         def create(
             resource_type: str,
-            resource_name: dns_1123_name,
-        ):  # pyright: ignore[reportUnusedFunction]
+            resource_name: Annotated[str, Pattern(r"^[a-z0-9]([-a-z0-9]*[a-z0-9])?$")],
+        ):
             console.print(f"[create] resource_type={resource_type}")
             console.print(f"[create] resource_name={resource_name}")
 
@@ -798,7 +796,7 @@ class TestComplexKubectlScenarios:
                 console.print("[get] all_namespaces=True")
 
         @app.command()
-        def describe(resource_type: str, resource_name: str):  # pyright: ignore[reportUnusedFunction]
+        def describe(resource_type: str, resource_name: str):
             console.print(f"[describe] resource_type={resource_type}")
             console.print(f"[describe] resource_name={resource_name}")
 
@@ -810,11 +808,11 @@ class TestComplexKubectlScenarios:
             console.print(f"[delete] resource_names={resource_names!r}")
 
         @app.command()
-        def apply(filename: Annotated[tuple[str, ...], "-f", Collect()]):  # pyright: ignore[reportUnusedFunction]
+        def apply(filename: Annotated[tuple[str, ...], "-f", Collect()]):
             console.print(f"[apply] filename={filename!r}")
 
         @app.command()
-        def logs(pod_name: str, follow: Annotated[bool, "-f"] = False):  # pyright: ignore[reportUnusedFunction]
+        def logs(pod_name: str, follow: Annotated[bool, "-f"] = False):
             console.print(f"[logs] pod_name={pod_name}")
             if follow:
                 console.print("[logs] follow=True")
@@ -951,7 +949,7 @@ class TestComplexKubectlScenarios:
         app = App("kubectl", console=console)
 
         @app.handler()
-        def kubectl(namespace: Annotated[str | None, "-n"] = None):  # pyright: ignore[reportUnusedFunction]
+        def kubectl(namespace: Annotated[str | None, "-n"] = None):
             if namespace:
                 console.print(f"[kubectl] namespace={namespace}")
 
@@ -986,7 +984,7 @@ class TestKubectlScaleCommand:
             resource_type: NonEmptyResourceName,
             resource_name: NonEmptyResourceName,
             replicas: Annotated[ReplicaCount, Opt()],
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             console.print(f"[scale] resource_type={resource_type}")
             console.print(f"[scale] resource_name={resource_name}")
             console.print(f"[scale] replicas={replicas}")
@@ -1010,7 +1008,7 @@ class TestKubectlWaitCommand:
             resource_name: NonEmptyResourceName,
             for_condition: Annotated[str, "--for"],
             timeout: Annotated[TimeoutSeconds | None, Opt()] = None,
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             console.print(f"[wait] resource_type={resource_type}")
             console.print(f"[wait] resource_name={resource_name}")
             console.print(f"[wait] for_condition={for_condition}")
@@ -1049,7 +1047,7 @@ class TestKubectlTopCommand:
         def pods(
             pod_names: Annotated[tuple[NonEmptyResourceName, ...], ZeroOrMore()] = (),
             containers: Annotated[bool, Opt()] = False,
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             console.print("[top pods] invoked")
             if pod_names:
                 console.print(f"[top pods] pod_names={pod_names!r}")

@@ -491,7 +491,7 @@ class TestComplexCommandValidators:
             targets: Annotated[tuple[str, ...], ZeroOrMore()] = (),
             jobs: Annotated[JobCount | None, "-j"] = None,
             serial: Annotated[bool, "-s"] = False,
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             console.print(f"[build] targets={targets!r}")
             if jobs:
                 console.print(f"[build] jobs={jobs}")
@@ -515,7 +515,7 @@ class TestComplexCommandValidators:
             targets: Annotated[tuple[str, ...], ZeroOrMore()] = (),
             jobs: Annotated[JobCount | None, "-j"] = None,
             load_average: Annotated[float | None, "-l"] = None,
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             console.print(f"[build] targets={targets!r}")
             if jobs:
                 console.print(f"[build] jobs={jobs}")
@@ -541,7 +541,7 @@ class TestComplexCommandValidators:
             packages: Annotated[tuple[str, ...], ZeroOrMore()] = (),
             save_dev: Annotated[bool, "-D"] = False,
             global_install: Annotated[bool, "-g"] = False,
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             console.print("[install] invoked")
             if packages:
                 console.print(f"[install] packages={packages!r}")
@@ -569,7 +569,7 @@ class TestComplexCommandValidators:
             tables: Annotated[tuple[str, ...], ZeroOrMore()] = (),
             raw: Annotated[bool, "-r"] = False,
             database: Annotated[str | None, "-D"] = None,
-        ):  # pyright: ignore[reportUnusedFunction]
+        ):
             if database:
                 console.print(f"[mysql] database={database}")
             if raw:

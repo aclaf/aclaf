@@ -1,13 +1,12 @@
 import inspect
 from dataclasses import dataclass, field
 from inspect import Parameter as FunctionParameter
-from types import MappingProxyType
+from types import MappingProxyType, UnionType
 from typing import (
     TYPE_CHECKING,
     Annotated,
     Any,
     TypedDict,
-    Union,
     Unpack,
     get_args,
     get_origin,
@@ -24,7 +23,6 @@ from typing_inspection.introspection import (
 )
 
 from aclaf._internal._inspect import get_annotations, inspect_annotation
-from aclaf._internal._metadata import flatten_metadata
 from aclaf.console import Console
 from aclaf.execution import (
     CommandFunctionType,
@@ -48,6 +46,7 @@ from aclaf.metadata import (
     MetadataType,
     Opt,
     ZeroOrMore,
+    flatten_metadata,
 )
 from aclaf.parser import (
     EXACTLY_ONE_ARITY,
@@ -80,6 +79,9 @@ def _extract_union_metadata(type_expr: Any) -> list[MetadataType]:  # pyright: i
     but does not extract metadata from Annotated types nested inside unions.
     This function handles that case.
 
+    Note: Only modern PEP 604 syntax (X | Y) is supported, as this project
+    targets Python 3.10+ where Union[X, Y] is deprecated.
+
     Example:
         Annotated[Annotated[int, Gt(0)] | None, Opt()]
         -> typing-inspection extracts: [Opt()]
@@ -88,9 +90,9 @@ def _extract_union_metadata(type_expr: Any) -> list[MetadataType]:  # pyright: i
     metadata: list[MetadataType] = []
     origin = get_origin(type_expr)  # pyright: ignore[reportAny]
 
-    # Check if the type expression is a union (Union or UnionType from PEP 604)
-    # Union comes from typing.Union, while | syntax creates types.UnionType
-    if origin is Union or (origin is not None and typing_objects.is_union(type_expr)):
+    # Check if the type expression is a union (PEP 604 | syntax)
+    # get_origin() returns types.UnionType for X | Y
+    if origin is UnionType:
         # Iterate through union type arguments
         for type_arg in get_args(type_expr):
             arg_origin = get_origin(type_arg)  # pyright: ignore[reportAny]

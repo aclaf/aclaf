@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from typing_extensions import override
 
-from ._protocol import RenderableType, RenderCapability, RenderContext, Renderer
+from ._protocols import RenderableType, RenderCapability, RenderContext, Renderer
 
 if TYPE_CHECKING:
     from aclaf.console import Console

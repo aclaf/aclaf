@@ -1,3 +1,5 @@
+from aclaf.types import ParsedOptionValue, ParsedPositionalValue
+
 from ._base import (
     BaseParser,
     ParsedOption,
@@ -47,9 +49,6 @@ from ._types import (
     ZERO_OR_ONE_ARITY,
     AccumulationMode,
     Arity,
-    ParsedOptionValue,
-    ParsedParameterValue,
-    ParsedPositionalValue,
 )
 from ._utils import (
     validate_command_name,
@@ -85,7 +84,6 @@ __all__ = [
     "ParseResult",
     "ParsedOption",
     "ParsedOptionValue",
-    "ParsedParameterValue",
     "ParsedPositional",
     "ParsedPositionalValue",
     "Parser",

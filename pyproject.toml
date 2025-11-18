@@ -46,6 +46,7 @@ dev = [
   "commitizen>=4.9.1",
   "djlint>=1.36.4",
   "hypothesis>=6.147.0",
+  "import-linter>=2.6",
   "mkdocs-git-authors-plugin>=0.10.0",
   "mkdocs-git-revision-date-localized-plugin>=1.5.0",
   "mkdocs-glightbox>=0.5.2",
@@ -54,12 +55,14 @@ dev = [
   "mkdocstrings[python]>=0.30.1",
   "prek>=0.2.12",
   "py-spy>=0.4.1",
+  "pydeps>=3.0.1",
   "pytest-asyncio>=1.2.0",
   "pytest-benchmark>=5.2.2",
   "pytest-cov>=7.0.0",
   "pytest-mock>=3.15.1",
   "pytest>=8.4.2",
   "ruff>=0.14.3",
+  "vulture>=2.14",
   "yamllint>=1.37.1",
 ]
 
@@ -128,6 +131,171 @@ database = ".hypothesis/examples"
 verbosity = "verbose"
 # Default number of examples to test per property
 max_examples = 100
+
+[tool.importlinter]
+root_package = "aclaf"
+
+# Architectural layer contracts
+# ==============================
+# These contracts enforce the architectural boundaries between different layers
+# of the aclaf framework. The architecture follows a layered approach where lower
+# layers provide foundational functionality and higher layers build on them.
+#
+# Layer hierarchy (from lowest to highest):
+#   0. Utilities: _internal (runtime type inspection, zero aclaf dependencies)
+#   1. Foundation: exceptions, protocols, types
+#   2. Infrastructure: console, logging, parser
+#   3. Core logic: conversion, validation, metadata
+#   4. Runtime: execution, response
+#   5. Registration: registration (mutable builders, uses _internal)
+#   6. Application: _application (orchestration)
+#
+# _internal is a special utility layer that sits below foundation. It provides
+# runtime type inspection capabilities (wrapping typing-extensions, typing-inspection,
+# annotated-types) and must remain completely independent of all aclaf modules.
+# Only conversion and registration layers should import from _internal.
+
+[[tool.importlinter.contracts]]
+name = "Parser must remain isolated from business logic"
+type = "forbidden"
+source_modules = ["aclaf.parser"]
+forbidden_modules = [
+  "aclaf.conversion",
+  "aclaf.validation",
+  "aclaf.metadata",
+  "aclaf.execution",
+  "aclaf.registration",
+  "aclaf.response",
+  "aclaf._application",
+]
+# Parser can import from: exceptions, protocols, types (allowed dependencies)
+
+[[tool.importlinter.contracts]]
+name = "Infrastructure layers must not import from business logic"
+type = "forbidden"
+source_modules = ["aclaf.console", "aclaf.logging"]
+forbidden_modules = [
+  "aclaf.parser",
+  "aclaf.conversion",
+  "aclaf.validation",
+  "aclaf.metadata",
+  "aclaf.execution",
+  "aclaf.registration",
+  "aclaf.response",
+  "aclaf._application",
+]
+
+[[tool.importlinter.contracts]]
+name = "Types layer must not import from parser"
+type = "forbidden"
+source_modules = ["aclaf.types"]
+forbidden_modules = ["aclaf.parser"]
+# Parser can import from types (correct dependency direction: types <- parser)
+
+[[tool.importlinter.contracts]]
+name = "Response layer must not import from registration or execution internals"
+type = "forbidden"
+source_modules = ["aclaf.response"]
+forbidden_modules = [
+  "aclaf.registration",
+  "aclaf.execution",
+  "aclaf.validation",
+  "aclaf.conversion",
+  "aclaf.metadata",
+  "aclaf.parser",
+]
+# Response can import from: console, exceptions, protocols, types (allowed dependencies)
+
+[[tool.importlinter.contracts]]
+name = "Conversion layer must not import from higher layers"
+type = "forbidden"
+source_modules = ["aclaf.conversion"]
+forbidden_modules = [
+  "aclaf.validation",
+  "aclaf.execution",
+  "aclaf.registration",
+  "aclaf.response",
+  "aclaf._application",
+]
+
+[[tool.importlinter.contracts]]
+name = "Validation layer must not import from higher layers"
+type = "forbidden"
+source_modules = ["aclaf.validation"]
+forbidden_modules = [
+  "aclaf.execution",
+  "aclaf.registration",
+  "aclaf.response",
+  "aclaf._application",
+]
+
+[[tool.importlinter.contracts]]
+name = "Metadata layer must not import from higher layers"
+type = "forbidden"
+source_modules = ["aclaf.metadata"]
+forbidden_modules = [
+  "aclaf.conversion",
+  "aclaf.validation",
+  "aclaf.execution",
+  "aclaf.registration",
+  "aclaf.response",
+  "aclaf._application",
+]
+
+[[tool.importlinter.contracts]]
+name = "Execution layer must not import from registration"
+type = "forbidden"
+source_modules = ["aclaf.execution"]
+forbidden_modules = [
+  "aclaf.registration", # Registration builds execution specs, not vice versa
+  "aclaf._application",
+]
+
+[[tool.importlinter.contracts]]
+name = "Foundation layers must be dependency-free"
+type = "independence"
+modules = ["aclaf.exceptions", "aclaf.protocols", "aclaf.types"]
+# Types is now a foundation layer providing core type definitions used by parser and other layers.
+
+[[tool.importlinter.contracts]]
+name = "Internal utilities must not import from higher layers"
+type = "forbidden"
+source_modules = ["aclaf._internal"]
+forbidden_modules = [
+  "aclaf.parser",
+  "aclaf.console",
+  "aclaf.logging",
+  "aclaf.conversion",
+  "aclaf.validation",
+  "aclaf.execution",
+  "aclaf.registration",
+  "aclaf.response",
+  "aclaf._application",
+]
+# _internal provides runtime type inspection utilities and should minimize dependencies.
+# It can import from foundation layers (exceptions, protocols, types, metadata) for
+# type annotations, but must not import from infrastructure or higher layers.
+# This keeps _internal lightweight while allowing necessary type hints.
+
+[[tool.importlinter.contracts]]
+name = "Internal utilities should only be directly imported by conversion and registration"
+type = "forbidden"
+source_modules = [
+  "aclaf.exceptions",
+  "aclaf.protocols",
+  "aclaf.types",
+  "aclaf.parser",
+  "aclaf.console",
+  "aclaf.logging",
+  "aclaf.validation",
+  "aclaf.metadata",
+  "aclaf.response",
+]
+forbidden_modules = ["aclaf._internal"]
+# Only conversion and registration layers should directly import from _internal, as they
+# need runtime type inspection. Other layers may depend on _internal transitively through
+# conversion/registration, but should not import it directly. This prevents _internal
+# from becoming a dumping ground for miscellaneous utilities.
 
 [tool.ruff]
 target-version = "py310"
@@ -212,7 +380,9 @@ ignore-variadic-names = true
 ] # TC003: Path is used at runtime in fixtures
 "examples/**" = ["T201"] # Allow print in examples
 "scripts/**" = ["T201"] # Allow print in scripts
-"src/aclaf/validation/**" = ["ARG001"] # Validators must match Protocol signature even if params unused
+"src/aclaf/validation/**" = [
+  "ARG001",
+] # Validators must match Protocol signature even if params unused
 
 [tool.uv.sources]
 aclaf = { workspace = true }
