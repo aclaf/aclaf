@@ -171,7 +171,9 @@ class TestUnionMetadataExtraction:
     def test_union_metadata_extraction_complex(self):
         type1 = Annotated[int, Gt(0)]
         type2 = Annotated[float, Lt(100.0)]
-        union_type = type1 | type2  #   # pyright: ignore[reportOperatorIssue]
+        union_type = (  # pyright: ignore[reportOperatorIssue, reportUnknownVariableType]
+            type1 | type2
+        )
         outer = Annotated[union_type, Opt()]  # type: ignore[misc]
         param = CommandParameter.from_annotation("value", outer, AnnotationSource.BARE)
         gt_found = any(isinstance(m, Gt) for m in param.metadata)

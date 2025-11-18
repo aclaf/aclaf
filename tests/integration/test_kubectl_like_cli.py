@@ -25,6 +25,7 @@ Note: This file intentionally uses patterns that trigger linting warnings:
 """
 
 # ruff: noqa: FBT002, A001, PLR0915, TC001
+# pyright: reportUnusedFunction=false
 
 from typing import Annotated
 

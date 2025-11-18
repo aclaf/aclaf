@@ -1,6 +1,7 @@
-# pyright: reportUnknownParameterType=false, reportMissingParameterType=false, reportUnknownArgumentType=false
+# pyright: reportUnknownParameterType=false, reportMissingParameterType=false, reportUnknownArgumentType=false, reportUnusedParameter=false
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from annotated_types import BaseMetadata
 
@@ -8,7 +9,14 @@ from aclaf.conversion import ConverterRegistry
 from aclaf.execution import EMPTY_COMMAND_FUNCTION
 from aclaf.logging import MockLogger
 from aclaf.registration import Command
-from aclaf.validation import ValidatorRegistry
+from aclaf.validation import ValidatorMetadataType, ValidatorRegistry
+
+if TYPE_CHECKING:
+    from aclaf.types import (
+        ParameterValueMappingType,
+        ParameterValueType,
+        ParsedParameterValue,
+    )
 
 
 class TestCascadingPerformance:
@@ -162,15 +170,26 @@ class TestCascadingPerformance:
             )
 
             @parent.converter(BenchType)
-            def parse_bench_type(value, _metadata):
+            def parse_bench_type(
+                value: "ParsedParameterValue | None",
+                _metadata: tuple[BaseMetadata, ...] | None,
+            ) -> BenchType:
+                assert value is not None
+                assert isinstance(value, str)
                 return BenchType(int(value))
 
             @parent.parameter_validator(BenchMetadata)
-            def validate_bench(value, metadata):
+            def validate_bench(
+                value: "ParameterValueType | ParameterValueMappingType | None",
+                metadata: ValidatorMetadataType,
+            ) -> tuple[str, ...] | None:
                 return None
 
             @parent.command_validator(BenchMetadata)
-            def validate_command(value, metadata):
+            def validate_command(
+                value: "ParameterValueType | ParameterValueMappingType | None",
+                metadata: ValidatorMetadataType,
+            ) -> tuple[str, ...] | None:
                 return None
 
             child = Command(name="child", run_func=EMPTY_COMMAND_FUNCTION)

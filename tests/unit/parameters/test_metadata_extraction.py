@@ -5,11 +5,6 @@ import pytest
 from annotated_types import Ge, Gt, Le, MinLen
 from typing_inspection.introspection import AnnotationSource
 
-from aclaf._internal._metadata import (
-    get_all_metadata,
-    get_metadata,
-    has_metadata,
-)
 from aclaf.metadata import (
     Arg,
     Collect,
@@ -19,6 +14,11 @@ from aclaf.metadata import (
     Flag,
     LastWins,
     Opt,
+)
+from aclaf.metadata._metadata import (
+    get_all_metadata,
+    get_metadata,
+    has_metadata,
 )
 from aclaf.parser import ONE_OR_MORE_ARITY, AccumulationMode
 from aclaf.registration import CommandParameter

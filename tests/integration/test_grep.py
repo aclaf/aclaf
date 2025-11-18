@@ -19,6 +19,7 @@ Note: This file intentionally uses patterns that trigger linting warnings:
 """
 
 # ruff: noqa: TC001, FBT002
+# pyright: reportUnusedParameter=false
 
 from typing import Annotated
 

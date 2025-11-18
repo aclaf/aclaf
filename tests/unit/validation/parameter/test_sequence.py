@@ -1,4 +1,4 @@
-"""Unit tests for sequence parameter validators."""
+# pyright: reportAny=false, reportUnknownArgumentType=false
 
 from aclaf.validation.parameter import (
     AllMatch,
@@ -412,7 +412,7 @@ class TestItemType:
 
     def test_validates_empty_sequence(self):
         metadata = ItemType(types=(int,))
-        value = []
+        value: list[str] = []
 
         result = validate_item_type(value, metadata)
 

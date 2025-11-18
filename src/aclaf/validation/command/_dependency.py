@@ -1,4 +1,4 @@
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, cast
 
@@ -14,7 +14,7 @@ class Requires(BaseMetadata):
     """If source parameter provided, required parameters must also be provided."""
 
     source: str
-    required: tuple[str, ...]
+    required: Sequence[str]
 
 
 def validate_requires(
@@ -56,7 +56,7 @@ class Forbids(BaseMetadata):
     """If source parameter provided, forbidden parameters must not be provided."""
 
     source: str
-    forbidden: tuple[str, ...]
+    forbidden: Sequence[str]
 
 
 def validate_forbids(

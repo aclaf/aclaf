@@ -1,4 +1,4 @@
-"""Unit tests for mapping parameter validators."""
+# pyright: reportUnknownArgumentType=false
 
 from aclaf.validation.parameter import (
     ForbiddenKeys,

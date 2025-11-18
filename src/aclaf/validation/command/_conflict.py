@@ -1,4 +1,4 @@
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, cast
 
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 class ConflictsWith(BaseMetadata):
     """Parameters cannot be provided together."""
 
-    parameter_names: tuple[str, ...]
+    parameter_names: Sequence[str]
 
 
 def validate_conflicts_with(

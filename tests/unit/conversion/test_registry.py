@@ -1,11 +1,16 @@
 # pyright: reportAny=false, reportExplicitAny=false, reportUnannotatedClassAttribute=false, reportUnknownParameterType=false, reportMissingParameterType=false, reportUnusedParameter=false, reportUnknownArgumentType=false, reportPrivateUsage=false, reportUnknownMemberType=false, reportUnusedFunction=false, reportImplicitOverride=false
+# ruff: noqa: ARG003
 
-from typing import Annotated
+from typing import TYPE_CHECKING, Annotated
 
 import pytest
 from annotated_types import Ge, Le
 
 from aclaf.conversion import ConversionError, ConverterRegistry, convert_bool
+
+if TYPE_CHECKING:
+    from aclaf.types import ParameterValueMappingType, ParameterValueType
+    from aclaf.validation import ValidatorMetadataType
 
 
 class TestRegistryBasics:
@@ -46,7 +51,10 @@ class TestCustomConverterRegistration:
             def __init__(self, value: str):
                 self.value = value
 
-        def convert_custom(value, metadata):
+        def convert_custom(
+            value: "ParameterValueType | ParameterValueMappingType | None",
+            metadata: "ValidatorMetadataType",
+        ):
             return CustomType(str(value))
 
         registry.register(CustomType, convert_custom)
@@ -59,7 +67,10 @@ class TestCustomConverterRegistration:
             def __init__(self, value: str):
                 self.value = value
 
-        def convert_custom(value, metadata):
+        def convert_custom(
+            value: "ParameterValueType | ParameterValueMappingType | None",
+            metadata: "ValidatorMetadataType",
+        ):
             return CustomType(str(value))
 
         registry.register(CustomType, convert_custom)
@@ -70,10 +81,16 @@ class TestCustomConverterRegistration:
     def test_register_duplicate_converter_raises_value_error(self):
         registry = ConverterRegistry()
 
-        def convert_str_1(value, metadata):
+        def convert_str_1(
+            value: "ParameterValueType | ParameterValueMappingType | None",
+            metadata: "ValidatorMetadataType",
+        ):
             return str(value)
 
-        def convert_str_2(value, metadata):
+        def convert_str_2(
+            value: "ParameterValueType | ParameterValueMappingType | None",
+            metadata: "ValidatorMetadataType",
+        ):
             return str(value).upper()
 
         # First registration succeeds (but str is already registered)
@@ -88,7 +105,10 @@ class TestConverterUnregistration:
         class CustomType:
             pass
 
-        def convert_custom(value, metadata):
+        def convert_custom(
+            value: "ParameterValueType | ParameterValueMappingType | None",
+            metadata: "ValidatorMetadataType",
+        ):
             return CustomType()
 
         registry.register(CustomType, convert_custom)
@@ -166,7 +186,10 @@ class TestConvertMethod:
         class CustomType:
             pass
 
-        def convert_custom(value, metadata):
+        def convert_custom(
+            value: "ParameterValueType | ParameterValueMappingType | None",
+            metadata: "ValidatorMetadataType",
+        ):
             msg = "Custom error"
             raise ValueError(msg)
 
@@ -184,7 +207,10 @@ class TestConvertMethod:
         class CustomType:
             pass
 
-        def convert_custom(value, metadata):
+        def convert_custom(
+            value: "ParameterValueType | ParameterValueMappingType | None",
+            metadata: "ValidatorMetadataType",
+        ):
             msg = "Custom type error"
             raise TypeError(msg)
 
@@ -202,7 +228,10 @@ class TestConvertMethod:
         class CustomType:
             pass
 
-        def convert_custom(value, metadata):
+        def convert_custom(
+            value: "ParameterValueType | ParameterValueMappingType | None",
+            metadata: "ValidatorMetadataType",
+        ):
             raise ConversionError(value, CustomType, "Original error")
 
         registry.register(CustomType, convert_custom)
@@ -233,7 +262,11 @@ class TestAnnotatedTypeHandling:
             metadata_received = None
 
             @classmethod
-            def convert(cls, value, metadata):
+            def convert(
+                cls,
+                value: "ParameterValueType | ParameterValueMappingType | None",
+                metadata: "ValidatorMetadataType",
+            ):
                 cls.metadata_received = metadata
                 return int(value)
 
@@ -272,7 +305,11 @@ class TestConverterCaching:
             value: str
 
             @classmethod
-            def from_cli_value(cls, value, metadata=None):  # noqa: ARG003
+            def from_cli_value(
+                cls,
+                value: "ParameterValueType | ParameterValueMappingType | None",
+                metadata: "ValidatorMetadataType",
+            ):
                 return cls(value=str(value))
 
         registry = ConverterRegistry()
@@ -290,7 +327,11 @@ class TestConverterWithMetadata:
             metadata_received = None
 
             @classmethod
-            def convert(cls, value, metadata):  # noqa: ARG003
+            def convert(
+                cls,
+                value: "ParameterValueType | ParameterValueMappingType | None",
+                metadata: "ValidatorMetadataType",
+            ):
                 cls.metadata_received = metadata
                 return CustomType()
 
@@ -306,7 +347,11 @@ class TestConverterWithMetadata:
             metadata_received = None
 
             @classmethod
-            def convert(cls, value, metadata):  # noqa: ARG003
+            def convert(
+                cls,
+                value: "ParameterValueType | ParameterValueMappingType | None",
+                metadata: "ValidatorMetadataType",
+            ):
                 cls.metadata_received = metadata
                 return CustomType()
 

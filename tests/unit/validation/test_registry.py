@@ -1,9 +1,14 @@
+# pyright: reportUnusedParameter=false, reportUnusedCallResult=false
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import pytest
 from annotated_types import BaseMetadata
 
-from aclaf.validation import ValidatorRegistry
+from aclaf.validation import ValidatorMetadataType, ValidatorRegistry
+
+if TYPE_CHECKING:
+    from aclaf.types import ParameterValueMappingType, ParameterValueType
 
 
 @dataclass(frozen=True, slots=True)
@@ -21,19 +26,31 @@ class MetadataC(BaseMetadata):
     value: float
 
 
-def validator_always_passes(value, metadata):
+def validator_always_passes(
+    value: "ParameterValueType | ParameterValueMappingType | None",
+    metadata: "ValidatorMetadataType",
+):
     return None
 
 
-def validator_always_fails(value, metadata):
+def validator_always_fails(
+    value: "ParameterValueType | ParameterValueMappingType | None",
+    metadata: "ValidatorMetadataType",
+):
     return ("Error message 1",)
 
 
-def validator_multiple_errors(value, metadata):
+def validator_multiple_errors(
+    value: "ParameterValueType | ParameterValueMappingType | None",
+    metadata: "ValidatorMetadataType",
+):
     return ("Error 1", "Error 2", "Error 3")
 
 
-def validator_conditional(value, metadata):
+def validator_conditional(
+    value: "ParameterValueType | ParameterValueMappingType | None",
+    metadata: "ValidatorMetadataType",
+):
     if isinstance(value, str) and len(value) > 5:
         return ("String too long",)
     return None
@@ -229,9 +246,17 @@ class TestValidatorRegistryValidation:
 
     def test_validate_calls_validator_with_correct_arguments(self):
         registry = ValidatorRegistry()
-        called_with = []
+        called_with: list[
+            tuple[
+                ParameterValueType | ParameterValueMappingType | None,
+                ValidatorMetadataType,
+            ]
+        ] = []
 
-        def capture_args(value, metadata):
+        def capture_args(
+            value: "ParameterValueType | ParameterValueMappingType | None",
+            metadata: "ValidatorMetadataType",
+        ):
             called_with.append((value, metadata))
 
         registry.register(MetadataA, capture_args)
@@ -268,7 +293,10 @@ class TestValidatorRegistryValidation:
     def test_validate_preserves_error_order(self):
         registry = ValidatorRegistry()
 
-        def validator_errors_ordered(value, metadata):
+        def validator_errors_ordered(
+            value: "ParameterValueType | ParameterValueMappingType | None",
+            metadata: "ValidatorMetadataType",
+        ):
             return ("Error A", "Error B", "Error C")
 
         registry.register(MetadataA, validator_errors_ordered)

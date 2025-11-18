@@ -9,6 +9,8 @@ This module provides validators for sequence (list/tuple/set) values:
 - ItemType: All items must be of specified type(s)
 """
 
+# pyright: reportUnusedParameter=false
+
 from collections.abc import Callable, Sequence as SequenceABC
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, cast
@@ -38,21 +40,21 @@ class SequenceContains(BaseMetadata):
 class AllMatch(BaseMetadata):
     """All items match predicate/pattern."""
 
-    predicate: Callable[[Any], bool]
+    predicate: Callable[[Any], bool]  # pyright: ignore[reportExplicitAny]
 
 
 @dataclass(slots=True, frozen=True)
 class AnyMatch(BaseMetadata):
     """At least one item matches predicate."""
 
-    predicate: Callable[[Any], bool]
+    predicate: Callable[[Any], bool]  # pyright: ignore[reportExplicitAny]
 
 
 @dataclass(slots=True, frozen=True)
 class NoneMatch(BaseMetadata):
     """No items match predicate/pattern."""
 
-    predicate: Callable[[Any], bool]
+    predicate: Callable[[Any], bool]  # pyright: ignore[reportExplicitAny]
 
 
 @dataclass(slots=True, frozen=True)

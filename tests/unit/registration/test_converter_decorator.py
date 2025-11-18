@@ -1,11 +1,14 @@
 # pyright: reportUnknownParameterType=false, reportMissingParameterType=false, reportUnknownArgumentType=false, reportUnusedFunction=false, reportUnusedParameter=false, reportUnusedCallResult=false, reportUnannotatedClassAttribute=false
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from aclaf import EMPTY_COMMAND_FUNCTION, Command
 
 if TYPE_CHECKING:
+    from annotated_types import BaseMetadata
+
     from aclaf.logging import Logger
+    from aclaf.types import ParsedParameterValue
 
 
 class CustomInt:
@@ -34,8 +37,11 @@ class TestConverterRegistration:
         cmd = Command(name="test")
 
         @cmd.converter(CustomInt)
-        def parse_custom_int(value, metadata):
-            return CustomInt(int(value) * 2)
+        def parse_custom_int(
+            value: "ParsedParameterValue | None",
+            metadata: tuple["BaseMetadata", ...] | None,
+        ) -> CustomInt:
+            return CustomInt(int(cast("int", value)) * 2)
 
         assert cmd.converters.has_converter(CustomInt)
         assert cmd.converters.get_converter(CustomInt) is parse_custom_int
@@ -43,8 +49,11 @@ class TestConverterRegistration:
     def test_converter_decorator_returns_original_function(self) -> None:
         cmd = Command(name="test")
 
-        def parse_custom_int(value, metadata):
-            return CustomInt(int(value))
+        def parse_custom_int(
+            value: "ParsedParameterValue | None",
+            metadata: tuple["BaseMetadata", ...] | None,
+        ) -> CustomInt:
+            return CustomInt(int(cast("int", value)))
 
         result = cmd.converter(CustomInt)(parse_custom_int)
 
@@ -58,7 +67,10 @@ class TestConverterRegistration:
                 self.value = value
 
         @cmd.converter(CustomType)
-        def parse_custom(value, metadata):
+        def parse_custom(
+            value: "ParsedParameterValue | None",
+            metadata: tuple["BaseMetadata", ...] | None,
+        ) -> CustomType:
             return CustomType(str(value))
 
         assert cmd.converters.has_converter(CustomType)
@@ -67,11 +79,17 @@ class TestConverterRegistration:
         cmd = Command(name="test")
 
         @cmd.converter(CustomInt)
-        def parse_custom_int(value, metadata):
-            return CustomInt(int(value))
+        def parse_custom_int(
+            value: "ParsedParameterValue | None",
+            metadata: tuple["BaseMetadata", ...] | None,
+        ) -> CustomInt:
+            return CustomInt(int(cast("int", value)))
 
         @cmd.converter(CustomStr)
-        def parse_custom_str(value, metadata):
+        def parse_custom_str(
+            value: "ParsedParameterValue | None",
+            metadata: tuple["BaseMetadata", ...] | None,
+        ) -> CustomStr:
             return CustomStr(str(value).upper())
 
         assert cmd.converters.has_converter(CustomInt)
@@ -83,8 +101,11 @@ class TestConverterRegistration:
         cmd = Command(name="test", run_func=EMPTY_COMMAND_FUNCTION)
 
         @cmd.converter(CustomInt)
-        def parse_custom_int(value, metadata):
-            return CustomInt(int(value) * 2)
+        def parse_custom_int(
+            value: "ParsedParameterValue | None",
+            metadata: tuple["BaseMetadata", ...] | None,
+        ) -> CustomInt:
+            return CustomInt(int(cast("int", value)) * 2)
 
         runtime = cmd.to_runtime_command()
 
@@ -97,8 +118,11 @@ class TestConverterInheritance:
         parent = Command(name="parent")
 
         @parent.converter(CustomInt)
-        def parse_custom_int(value, metadata):
-            return CustomInt(int(value) * 2)
+        def parse_custom_int(
+            value: "ParsedParameterValue | None",
+            metadata: tuple["BaseMetadata", ...] | None,
+        ) -> CustomInt:
+            return CustomInt(int(cast("int", value)) * 2)
 
         @parent.command()
         def child():
@@ -113,8 +137,11 @@ class TestConverterInheritance:
         parent = Command(name="parent")
 
         @parent.converter(CustomInt)
-        def parse_custom_int(value, metadata):
-            return CustomInt(int(value) * 2)
+        def parse_custom_int(
+            value: "ParsedParameterValue | None",
+            metadata: tuple["BaseMetadata", ...] | None,
+        ) -> CustomInt:
+            return CustomInt(int(cast("int", value)) * 2)
 
         child = Command(name="child", run_func=EMPTY_COMMAND_FUNCTION)
         parent.mount(child)
@@ -126,8 +153,11 @@ class TestConverterInheritance:
         root = Command(name="root")
 
         @root.converter(CustomInt)
-        def parse_custom_int(value, metadata):
-            return CustomInt(int(value) * 2)
+        def parse_custom_int(
+            value: "ParsedParameterValue | None",
+            metadata: tuple["BaseMetadata", ...] | None,
+        ) -> CustomInt:
+            return CustomInt(int(cast("int", value)) * 2)
 
         @root.command()
         def mid():
@@ -147,8 +177,11 @@ class TestConverterOverride:
         parent = Command(name="parent")
 
         @parent.converter(CustomInt)
-        def parent_converter(value, metadata):
-            return CustomInt(int(value) * 2)
+        def parent_converter(
+            value: "ParsedParameterValue | None",
+            metadata: tuple["BaseMetadata", ...] | None,
+        ) -> CustomInt:
+            return CustomInt(int(cast("int", value)) * 2)
 
         @parent.command()
         def child():
@@ -165,8 +198,11 @@ class TestConverterCascading:
         parent = Command(name="parent", logger=logger)
 
         @parent.converter(CustomInt)
-        def parse_custom_int(value, metadata):
-            return CustomInt(int(value) * 3)
+        def parse_custom_int(
+            value: "ParsedParameterValue | None",
+            metadata: tuple["BaseMetadata", ...] | None,
+        ) -> CustomInt:
+            return CustomInt(int(cast("int", value)) * 3)
 
         child = Command(name="child", run_func=EMPTY_COMMAND_FUNCTION)
         parent.mount(child)
@@ -178,8 +214,11 @@ class TestConverterCascading:
         root = Command(name="root")
 
         @root.converter(CustomFloat)
-        def parse_custom_float(value, metadata):
-            return CustomFloat(float(value) * 1.5)
+        def parse_custom_float(
+            value: "ParsedParameterValue | None",
+            metadata: tuple["BaseMetadata", ...] | None,
+        ) -> CustomFloat:
+            return CustomFloat(float(cast("float", value)) * 1.5)
 
         @root.command()
         def level1():

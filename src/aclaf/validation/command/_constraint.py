@@ -1,4 +1,4 @@
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, cast
 
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 class MutuallyExclusive(BaseMetadata):
     """At most one of specified parameters can be provided."""
 
-    parameter_names: tuple[str, ...]
+    parameter_names: Sequence[str]
 
 
 def validate_mutually_exclusive(
@@ -54,7 +54,7 @@ def validate_mutually_exclusive(
 class ExactlyOneOf(BaseMetadata):
     """Exactly one of specified parameters must be provided."""
 
-    parameter_names: tuple[str, ...]
+    parameter_names: Sequence[str]
 
 
 def validate_exactly_one_of(
@@ -98,7 +98,7 @@ def validate_exactly_one_of(
 class AtLeastOneOf(BaseMetadata):
     """At least one of specified parameters must be provided."""
 
-    parameter_names: tuple[str, ...]
+    parameter_names: Sequence[str]
 
 
 def validate_at_least_one_of(
@@ -135,7 +135,7 @@ def validate_at_least_one_of(
 class AtMostOneOf(BaseMetadata):
     """At most one of specified parameters can be provided."""
 
-    parameter_names: tuple[str, ...]
+    parameter_names: Sequence[str]
 
 
 def validate_at_most_one_of(

@@ -1,3 +1,5 @@
+# pyright: reportUnusedParameter=false
+
 import os
 from dataclasses import dataclass
 from pathlib import Path

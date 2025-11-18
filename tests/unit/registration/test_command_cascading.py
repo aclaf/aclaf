@@ -1,4 +1,4 @@
-# pyright: reportUnusedFunction=false, reportUnusedParameter=false, reportUnusedCallResult=false
+# pyright: reportUnusedFunction=false, reportUnusedParameter=false, reportUnusedCallResult=false, reportPrivateUsage=false
 from typing import TYPE_CHECKING
 
 import pytest
@@ -6,10 +6,15 @@ from annotated_types import BaseMetadata
 
 from aclaf import EMPTY_COMMAND_FUNCTION, Command
 from aclaf.logging import MockLogger
-from aclaf.validation import ValidatorRegistry
+from aclaf.validation import ValidatorMetadataType, ValidatorRegistry
 
 if TYPE_CHECKING:
     from aclaf.logging import Logger
+    from aclaf.types import (
+        ParameterValueMappingType,
+        ParameterValueType,
+        ParsedParameterValue,
+    )
 
 
 class CascadeInt:
@@ -80,7 +85,11 @@ class TestConverterCascading:
         parent = Command(name="parent")
 
         @parent.converter(CascadeInt)
-        def parse_cascade_int(value, metadata):
+        def parse_cascade_int(
+            value: "ParsedParameterValue | None",
+            metadata: tuple[BaseMetadata, ...] | None,
+        ) -> CascadeInt:
+            assert isinstance(value, str)
             return CascadeInt(int(value) * 2)
 
         child = Command(name="child", run_func=EMPTY_COMMAND_FUNCTION)
@@ -93,13 +102,20 @@ class TestConverterCascading:
         parent = Command(name="parent")
 
         @parent.converter(CascadeInt)
-        def parent_converter(value, metadata):
+        def parent_converter(
+            value: "ParsedParameterValue | None",
+            metadata: tuple[BaseMetadata, ...] | None,
+        ) -> CascadeInt:
+            assert isinstance(value, str)
             return CascadeInt(int(value) * 2)
 
         child = Command(name="child", run_func=EMPTY_COMMAND_FUNCTION)
 
         @child.converter(CascadeStr)
-        def child_converter(value, metadata):
+        def child_converter(
+            value: "ParsedParameterValue | None",
+            metadata: tuple[BaseMetadata, ...] | None,
+        ) -> CascadeStr:
             return CascadeStr(str(value).upper())
 
         # Child has its own registry before mounting
@@ -120,7 +136,11 @@ class TestConverterCascading:
         parent = Command(name="parent")
 
         @parent.converter(CascadeFloat)
-        def parse_cascade_float(value, metadata):
+        def parse_cascade_float(
+            value: "ParsedParameterValue | None",
+            metadata: tuple[BaseMetadata, ...] | None,
+        ) -> CascadeFloat:
+            assert isinstance(value, str)
             return CascadeFloat(float(value) * 1.5)
 
         @parent.command()
@@ -137,7 +157,10 @@ class TestValidatorCascading:
         parent = Command(name="parent")
 
         @parent.parameter_validator(CascadeMetadata1)
-        def validate_cascade1(value, metadata):
+        def validate_cascade1(
+            value: "ParameterValueType | ParameterValueMappingType | None",
+            metadata: ValidatorMetadataType,
+        ) -> tuple[str, ...] | None:
             return None
 
         child = Command(name="child", run_func=EMPTY_COMMAND_FUNCTION)
@@ -159,11 +182,17 @@ class TestValidatorCascading:
         )
 
         @parent.parameter_validator(CascadeMetadata6)
-        def parent_validator(value, metadata):
+        def parent_validator(
+            value: "ParameterValueType | ParameterValueMappingType | None",
+            metadata: ValidatorMetadataType,
+        ) -> tuple[str, ...] | None:
             return None
 
         @child.parameter_validator(CascadeMetadata2)
-        def child_validator(value, metadata):
+        def child_validator(
+            value: "ParameterValueType | ParameterValueMappingType | None",
+            metadata: ValidatorMetadataType,
+        ) -> tuple[str, ...] | None:
             return None
 
         # Child has its own registry before mounting
@@ -190,7 +219,10 @@ class TestValidatorCascading:
         parent = Command(name="parent")
 
         @parent.parameter_validator(CascadeMetadata3)
-        def validate_cascade3(value, metadata):
+        def validate_cascade3(
+            value: "ParameterValueType | ParameterValueMappingType | None",
+            metadata: ValidatorMetadataType,
+        ) -> tuple[str, ...] | None:
             return None
 
         @parent.command()
@@ -246,11 +278,18 @@ class TestDeepHierarchyCascading:
         root = Command(name="root", logger=logger)
 
         @root.converter(CascadeInt)
-        def parse_cascade_int(value, metadata):
+        def parse_cascade_int(
+            value: "ParsedParameterValue | None",
+            metadata: tuple[BaseMetadata, ...] | None,
+        ) -> CascadeInt:
+            assert isinstance(value, str)
             return CascadeInt(int(value) * 10)
 
         @root.parameter_validator(CascadeMetadata4)
-        def validate_cascade4(value, metadata):
+        def validate_cascade4(
+            value: "ParameterValueType | ParameterValueMappingType | None",
+            metadata: ValidatorMetadataType,
+        ) -> tuple[str, ...] | None:
             return None
 
         @root.command()
@@ -286,7 +325,11 @@ class TestDeepHierarchyCascading:
         root = Command(name="root", logger=logger)
 
         @root.converter(CascadeFloat)
-        def parse_cascade_float(value, metadata):
+        def parse_cascade_float(
+            value: "ParsedParameterValue | None",
+            metadata: tuple[BaseMetadata, ...] | None,
+        ) -> CascadeFloat:
+            assert isinstance(value, str)
             return CascadeFloat(float(value))
 
         level1 = Command(name="level1", run_func=EMPTY_COMMAND_FUNCTION)
@@ -331,11 +374,18 @@ class TestDeepHierarchyCascading:
         parent = Command(name="parent", logger=logger)
 
         @parent.converter(CascadeInt)
-        def parse_cascade_int(value, metadata):
+        def parse_cascade_int(
+            value: "ParsedParameterValue | None",
+            metadata: tuple[BaseMetadata, ...] | None,
+        ) -> CascadeInt:
+            assert isinstance(value, str)
             return CascadeInt(int(value))
 
         @parent.parameter_validator(CascadeMetadata5)
-        def validate_cascade5(value, metadata):
+        def validate_cascade5(
+            value: "ParameterValueType | ParameterValueMappingType | None",
+            metadata: ValidatorMetadataType,
+        ) -> tuple[str, ...] | None:
             return None
 
         # Create a command with its own subcommand
@@ -362,7 +412,11 @@ class TestDeepHierarchyCascading:
         root = Command(name="root", logger=logger)
 
         @root.converter(CascadeInt)
-        def parse_int(value, metadata):
+        def parse_int(
+            value: "ParsedParameterValue | None",
+            metadata: tuple[BaseMetadata, ...] | None,
+        ) -> CascadeInt:
+            assert isinstance(value, str)
             return CascadeInt(int(value))
 
         # Create two separate command trees
@@ -393,7 +447,11 @@ class TestDeepHierarchyCascading:
         root = Command(name="root", logger=logger)
 
         @root.converter(CascadeFloat)
-        def parse_float(value, metadata):
+        def parse_float(
+            value: "ParsedParameterValue | None",
+            metadata: tuple[BaseMetadata, ...] | None,
+        ) -> CascadeFloat:
+            assert isinstance(value, str)
             return CascadeFloat(float(value))
 
         # Create a 5-level deep tree
@@ -421,7 +479,10 @@ class TestDeepHierarchyCascading:
         parent = Command(name="parent", logger=logger)
 
         @parent.converter(CascadeStr)
-        def parse_str(value, metadata):
+        def parse_str(
+            value: "ParsedParameterValue | None",
+            metadata: tuple[BaseMetadata, ...] | None,
+        ) -> CascadeStr:
             return CascadeStr(str(value))
 
         # Mount a command with no subcommands
@@ -454,7 +515,10 @@ class TestDeepHierarchyCascading:
         parent = Command(name="parent")
 
         @parent.command_validator(CascadeMetadata1)
-        def validate_command(value, metadata):
+        def validate_command(
+            value: "ParameterValueType | ParameterValueMappingType | None",
+            metadata: ValidatorMetadataType,
+        ) -> tuple[str, ...] | None:
             return None
 
         child = Command(name="child", run_func=EMPTY_COMMAND_FUNCTION)
@@ -496,11 +560,19 @@ class TestMergeSemantics:
 
         # Both parent and child define converter for the same type
         @parent.converter(CascadeInt)
-        def parent_converter(value, metadata):
+        def parent_converter(
+            value: "ParsedParameterValue | None",
+            metadata: tuple[BaseMetadata, ...] | None,
+        ) -> CascadeInt:
+            assert isinstance(value, str)
             return CascadeInt(int(value) * 2)
 
         @child.converter(CascadeInt)
-        def child_converter(value, metadata):
+        def child_converter(
+            value: "ParsedParameterValue | None",
+            metadata: tuple[BaseMetadata, ...] | None,
+        ) -> CascadeInt:
+            assert isinstance(value, str)
             return CascadeInt(int(value) * 10)
 
         # Mount child - child's converter should win
@@ -523,14 +595,22 @@ class TestMergeSemantics:
         child_called = False
 
         @parent.parameter_validator(CascadeMetadata1)
-        def parent_validator(value, metadata):
+        def parent_validator(
+            value: "ParameterValueType | ParameterValueMappingType | None",
+            metadata: ValidatorMetadataType,
+        ) -> tuple[str, ...] | None:
             nonlocal parent_called
             parent_called = True
+            return None
 
         @child.parameter_validator(CascadeMetadata1)
-        def child_validator(value, metadata):
+        def child_validator(
+            value: "ParameterValueType | ParameterValueMappingType | None",
+            metadata: ValidatorMetadataType,
+        ) -> tuple[str, ...] | None:
             nonlocal child_called
             child_called = True
+            return None
 
         parent.mount(child)
 
@@ -549,16 +629,27 @@ class TestMergeSemantics:
         child = Command(name="child", run_func=EMPTY_COMMAND_FUNCTION)
 
         @parent.converter(CascadeInt)
-        def parent_int_converter(value, metadata):
+        def parent_int_converter(
+            value: "ParsedParameterValue | None",
+            metadata: tuple[BaseMetadata, ...] | None,
+        ) -> CascadeInt:
+            assert isinstance(value, str)
             return CascadeInt(int(value) * 2)
 
         @parent.converter(CascadeFloat)
-        def parent_float_converter(value, metadata):
+        def parent_float_converter(
+            value: "ParsedParameterValue | None",
+            metadata: tuple[BaseMetadata, ...] | None,
+        ) -> CascadeFloat:
+            assert isinstance(value, str)
             return CascadeFloat(float(value) * 1.5)
 
         # Child only defines converter for CascadeStr
         @child.converter(CascadeStr)
-        def child_str_converter(value, metadata):
+        def child_str_converter(
+            value: "ParsedParameterValue | None",
+            metadata: tuple[BaseMetadata, ...] | None,
+        ) -> CascadeStr:
             return CascadeStr(str(value).upper())
 
         parent.mount(child)
@@ -577,15 +668,24 @@ class TestMergeSemantics:
         child.parameter_validators = ValidatorRegistry()
 
         @parent.parameter_validator(CascadeMetadata1)
-        def parent_validator1(value, metadata):
+        def parent_validator1(
+            value: "ParameterValueType | ParameterValueMappingType | None",
+            metadata: ValidatorMetadataType,
+        ) -> tuple[str, ...] | None:
             return None
 
         @parent.parameter_validator(CascadeMetadata2)
-        def parent_validator2(value, metadata):
+        def parent_validator2(
+            value: "ParameterValueType | ParameterValueMappingType | None",
+            metadata: ValidatorMetadataType,
+        ) -> tuple[str, ...] | None:
             return None
 
         @child.parameter_validator(CascadeMetadata3)
-        def child_validator(value, metadata):
+        def child_validator(
+            value: "ParameterValueType | ParameterValueMappingType | None",
+            metadata: ValidatorMetadataType,
+        ) -> tuple[str, ...] | None:
             return None
 
         parent.mount(child)
@@ -646,15 +746,26 @@ class TestMergeSemantics:
         leaf = Command(name="leaf", run_func=EMPTY_COMMAND_FUNCTION)
 
         @root.converter(CascadeInt)
-        def root_converter(value, metadata):
+        def root_converter(
+            value: "ParsedParameterValue | None",
+            metadata: tuple[BaseMetadata, ...] | None,
+        ) -> CascadeInt:
+            assert isinstance(value, str)
             return CascadeInt(int(value) * 2)
 
         @middle.converter(CascadeStr)
-        def middle_converter(value, metadata):
+        def middle_converter(
+            value: "ParsedParameterValue | None",
+            metadata: tuple[BaseMetadata, ...] | None,
+        ) -> CascadeStr:
             return CascadeStr(str(value).upper())
 
         @leaf.converter(CascadeFloat)
-        def leaf_converter(value, metadata):
+        def leaf_converter(
+            value: "ParsedParameterValue | None",
+            metadata: tuple[BaseMetadata, ...] | None,
+        ) -> CascadeFloat:
+            assert isinstance(value, str)
             return CascadeFloat(float(value) * 1.5)
 
         # Mount in chain

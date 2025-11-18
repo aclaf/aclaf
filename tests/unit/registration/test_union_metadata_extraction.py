@@ -2,13 +2,15 @@ from typing import Annotated
 
 from annotated_types import Gt
 
-from aclaf.registration._parameters import _extract_union_metadata
+from aclaf.registration._parameters import (
+    _extract_union_metadata,  # pyright: ignore[reportPrivateUsage]
+)
 
 
 class TestUnionMetadataExtraction:
     def test_pipe_union_with_single_annotated_member(self):
         # Use eval to construct X | Y syntax at runtime
-        annotation = eval(  # noqa: S307
+        annotation = eval(  # noqa: S307  # pyright: ignore[reportAny]
             "Annotated[int, Gt(0)] | None",
             {"Annotated": Annotated, "Gt": Gt, "int": int, "None": None},
         )
@@ -20,7 +22,7 @@ class TestUnionMetadataExtraction:
 
     def test_pipe_union_with_multiple_annotated_members(self):
         # Use eval to construct X | Y syntax at runtime
-        annotation = eval(  # noqa: S307
+        annotation = eval(  # noqa: S307  # pyright: ignore[reportAny]
             'Annotated[int, Gt(0)] | Annotated[str, "some_metadata"]',
             {"Annotated": Annotated, "Gt": Gt, "int": int, "str": str},
         )
@@ -32,7 +34,7 @@ class TestUnionMetadataExtraction:
 
     def test_pipe_union_with_three_annotated_members(self):
         # Use eval to construct X | Y syntax at runtime
-        annotation = eval(  # noqa: S307
+        annotation = eval(  # noqa: S307  # pyright: ignore[reportAny]
             'Annotated[int, Gt(0)] | Annotated[str, "metadata"] | None',
             {
                 "Annotated": Annotated,

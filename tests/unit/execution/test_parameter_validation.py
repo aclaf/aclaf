@@ -237,7 +237,6 @@ class TestValidatorErrorCollection:
         converters: "ConverterRegistry",
         parameter_validators: "ValidatorRegistry",
     ):
-
         param = runtime_option_factory(
             name="email",
             value_type=str,

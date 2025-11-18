@@ -11,6 +11,8 @@ This module provides validators for numeric values including:
 - Precision: Decimal precision constraint
 """
 
+# pyright: reportUnusedParameter=false
+
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import TYPE_CHECKING, cast

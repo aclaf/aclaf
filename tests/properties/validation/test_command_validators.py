@@ -87,7 +87,7 @@ def parameter_mapping_strategy(
 @given(
     param_names=parameter_names_strategy(min_size=1, max_size=4),
 )
-def test_none_values_treated_as_not_provided_mutually_exclusive(param_names):
+def test_none_values_treated_as_not_provided_mutually_exclusive(param_names: list[str]):
     """Parameters with None values are treated as not provided for MutuallyExclusive."""
     metadata = MutuallyExclusive(parameter_names=param_names)
 
@@ -103,7 +103,7 @@ def test_none_values_treated_as_not_provided_mutually_exclusive(param_names):
 @given(
     param_names=parameter_names_strategy(min_size=1, max_size=4),
 )
-def test_none_values_treated_as_not_provided_exactly_one_of(param_names):
+def test_none_values_treated_as_not_provided_exactly_one_of(param_names: list[str]):
     """Parameters with None values are treated as not provided for ExactlyOneOf."""
     metadata = ExactlyOneOf(parameter_names=param_names)
 
@@ -121,7 +121,7 @@ def test_none_values_treated_as_not_provided_exactly_one_of(param_names):
 @given(
     param_names=parameter_names_strategy(min_size=1, max_size=4),
 )
-def test_none_values_treated_as_not_provided_at_least_one_of(param_names):
+def test_none_values_treated_as_not_provided_at_least_one_of(param_names: list[str]):
     """Parameters with None values are treated as not provided for AtLeastOneOf."""
     metadata = AtLeastOneOf(parameter_names=param_names)
 
@@ -143,7 +143,9 @@ def test_none_values_treated_as_not_provided_at_least_one_of(param_names):
     param_names=parameter_names_strategy(min_size=2, max_size=5),
     data=st.data(),
 )
-def test_mutually_exclusive_fails_iff_multiple_provided(param_names, data):
+def test_mutually_exclusive_fails_iff_multiple_provided(
+    param_names: list[str], data: st.DataObject
+):
     """MutuallyExclusive fails if and only if 2+ parameters are provided."""
     metadata = MutuallyExclusive(parameter_names=param_names)
 
@@ -166,7 +168,9 @@ def test_mutually_exclusive_fails_iff_multiple_provided(param_names, data):
     param_names=parameter_names_strategy(min_size=1, max_size=5),
     data=st.data(),
 )
-def test_exactly_one_of_passes_iff_exactly_one_provided(param_names, data):
+def test_exactly_one_of_passes_iff_exactly_one_provided(
+    param_names: list[str], data: st.DataObject
+):
     """ExactlyOneOf passes if and only if exactly 1 parameter is provided."""
     metadata = ExactlyOneOf(parameter_names=param_names)
 
@@ -189,7 +193,9 @@ def test_exactly_one_of_passes_iff_exactly_one_provided(param_names, data):
     param_names=parameter_names_strategy(min_size=1, max_size=5),
     data=st.data(),
 )
-def test_at_least_one_of_passes_iff_one_or_more_provided(param_names, data):
+def test_at_least_one_of_passes_iff_one_or_more_provided(
+    param_names: list[str], data: st.DataObject
+):
     """AtLeastOneOf passes if and only if 1+ parameters are provided."""
     metadata = AtLeastOneOf(parameter_names=param_names)
 
@@ -212,7 +218,9 @@ def test_at_least_one_of_passes_iff_one_or_more_provided(param_names, data):
     param_names=parameter_names_strategy(min_size=2, max_size=5),
     data=st.data(),
 )
-def test_at_most_one_of_passes_iff_zero_or_one_provided(param_names, data):
+def test_at_most_one_of_passes_iff_zero_or_one_provided(
+    param_names: list[str], data: st.DataObject
+):
     """AtMostOneOf passes if and only if 0 or 1 parameter is provided."""
     metadata = AtMostOneOf(parameter_names=param_names)
 
@@ -238,7 +246,9 @@ def test_at_most_one_of_passes_iff_zero_or_one_provided(param_names, data):
     param_names=parameter_names_strategy(min_size=1, max_size=3),
     data=st.data(),
 )
-def test_mutually_exclusive_ignores_extra_parameters(param_names, data):
+def test_mutually_exclusive_ignores_extra_parameters(
+    param_names: list[str], data: st.DataObject
+):
     """MutuallyExclusive only considers specified parameters, ignores extras."""
     metadata = MutuallyExclusive(parameter_names=param_names)
 
@@ -276,7 +286,9 @@ def test_mutually_exclusive_ignores_extra_parameters(param_names, data):
     required=parameter_names_strategy(min_size=1, max_size=3),
     data=st.data(),
 )
-def test_requires_no_validation_when_source_not_provided(source, required, data):
+def test_requires_no_validation_when_source_not_provided(
+    source: str, required: list[str], data: st.DataObject
+):
     """Requires validator passes when source parameter is None or missing."""
     # Skip if source is in required names (conflict)
     if source in required:
@@ -307,7 +319,9 @@ def test_requires_no_validation_when_source_not_provided(source, required, data)
     forbidden=parameter_names_strategy(min_size=1, max_size=3),
     data=st.data(),
 )
-def test_forbids_no_validation_when_source_not_provided(source, forbidden, data):
+def test_forbids_no_validation_when_source_not_provided(
+    source: str, forbidden: list[str], data: st.DataObject
+):
     """Forbids validator passes when source parameter is None or missing."""
     # Skip if source is in forbidden names (conflict)
     if source in forbidden:
@@ -333,7 +347,7 @@ def test_forbids_no_validation_when_source_not_provided(source, forbidden, data)
 @given(
     param_names=parameter_names_strategy(min_size=2, max_size=4),
 )
-def test_mutually_exclusive_error_format_consistent(param_names):
+def test_mutually_exclusive_error_format_consistent(param_names: list[str]):
     """When MutuallyExclusive fails, it returns non-empty tuple of strings."""
     metadata = MutuallyExclusive(parameter_names=param_names)
 
@@ -360,7 +374,7 @@ def test_mutually_exclusive_error_format_consistent(param_names):
     ),
     required=parameter_names_strategy(min_size=1, max_size=3),
 )
-def test_requires_error_format_consistent(source, required):
+def test_requires_error_format_consistent(source: str, required: list[str]):
     """When Requires fails, it returns non-empty tuple of strings."""
     # Skip if source is in required names (conflict)
     if source in required:
@@ -390,7 +404,9 @@ def test_requires_error_format_consistent(source, required):
     param_names=parameter_names_strategy(min_size=2, max_size=5),
     data=st.data(),
 )
-def test_conflicts_with_equivalent_to_mutually_exclusive(param_names, data):
+def test_conflicts_with_equivalent_to_mutually_exclusive(
+    param_names: list[str], data: st.DataObject
+):
     """ConflictsWith has identical behavior to MutuallyExclusive."""
     conflicts_meta = ConflictsWith(parameter_names=param_names)
     mutually_exclusive_meta = MutuallyExclusive(parameter_names=param_names)
