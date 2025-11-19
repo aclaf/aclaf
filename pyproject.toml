@@ -192,4 +192,4 @@ ignore-variadic-names = true
 "**/tests/**" = ["D", "PLR2004", "S101"]
 
 [tool.uv.sources]
-flagrant = { path = "../flagrant", "editable" = true }
+flagrant = { git = "https://github.com/aclaf/flagrant", branch = "main" }

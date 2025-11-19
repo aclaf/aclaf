@@ -36,7 +36,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "flagrant", editable = "../flagrant" },
+    { name = "flagrant", git = "https://github.com/aclaf/flagrant?branch=main" },
     { name = "typing-extensions", specifier = ">=4.15.0" },
 ]
 
@@ -496,42 +496,9 @@ wheels = [
 [[package]]
 name = "flagrant"
 version = "0.1.0"
-source = { editable = "../flagrant" }
+source = { git = "https://github.com/aclaf/flagrant?branch=main#652dc7abe674986cafce3d6bc40b236b9f0e7e3e" }
 dependencies = [
     { name = "typing-extensions" },
-]
-
-[package.metadata]
-requires-dist = [{ name = "typing-extensions", specifier = ">=4.15.0" }]
-
-[package.metadata.requires-dev]
-benchmarking = [{ name = "pytest-benchmark", specifier = ">=5.2.2" }]
-dev = [
-    { name = "basedpyright", specifier = ">=1.32.1" },
-    { name = "codespell", specifier = ">=2.4.1" },
-    { name = "commitizen", specifier = ">=4.9.1" },
-    { name = "hypothesis", specifier = ">=6.147.0" },
-    { name = "prek", specifier = ">=0.2.12" },
-    { name = "pytest", specifier = ">=8.4.2" },
-    { name = "pytest-cov", specifier = ">=7.0.0" },
-    { name = "pytest-mock", specifier = ">=3.15.1" },
-    { name = "ruff", specifier = ">=0.14.3" },
-    { name = "yamllint", specifier = ">=1.37.1" },
-]
-docs = [
-    { name = "djlint", specifier = ">=1.36.4" },
-    { name = "mkdocs-git-authors-plugin", specifier = ">=0.10.0" },
-    { name = "mkdocs-git-revision-date-localized-plugin", specifier = ">=1.5.0" },
-    { name = "mkdocs-glightbox", specifier = ">=0.5.2" },
-    { name = "mkdocs-material", specifier = ">=9.7.0" },
-    { name = "mkdocs-rss-plugin", specifier = ">=1.17.7" },
-    { name = "mkdocstrings", extras = ["python"], specifier = ">=0.30.1" },
-]
-fuzzing = [{ name = "atheris", marker = "python_full_version < '3.12'", specifier = ">=2.3.0" }]
-mutation = [{ name = "mutmut", marker = "python_full_version < '3.14'", specifier = ">=3.3.1" }]
-profiling = [
-    { name = "memray", specifier = ">=1.19.1" },
-    { name = "py-spy", specifier = ">=0.4.1" },
 ]
 
 [[package]]
