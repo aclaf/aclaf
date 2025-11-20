@@ -28,7 +28,7 @@ classifiers = [
   "Topic :: Utilities",
   "Typing :: Typed",
 ]
-dependencies = ["typing-extensions>=4.15.0"]
+dependencies = ["flagrant", "typing-extensions>=4.15.0"]
 
 [dependency-groups]
 dev = [
@@ -57,8 +57,8 @@ dev = [
 include = ["src", "tests"]
 
 [tool.codespell]
-skip = "pnpm-lock.yaml,uv.lock,htmlcov,site"
-ignore-words-list = "nd,ue,metacharacter,subcmd,cna"
+skip = "pnpm-lock.yaml,uv.lock,htmlcov,plans,research,reviews,site,specs,tmp"
+ignore-words-list = "cna"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
@@ -80,9 +80,6 @@ asyncio_mode = "auto"
 filterwarnings = ["error"]
 testpaths = ["tests"]
 xfail_strict = true
-markers = [
-  "security: Security-focused tests for injection and validation (deselect with '-m \"not security\"')",
-]
 
 [tool.coverage.run]
 branch = true
@@ -193,3 +190,6 @@ ignore-variadic-names = true
 [tool.ruff.lint.per-file-ignores]
 "**/__main__.py" = ["D100"]
 "**/tests/**" = ["D", "PLR2004", "S101"]
+
+[tool.uv.sources]
+flagrant = { git = "https://github.com/aclaf/flagrant", branch = "main" }
