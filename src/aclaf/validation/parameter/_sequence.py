@@ -93,8 +93,9 @@ def validate_unique_items(
 
     if duplicates:
         # Sort duplicates for consistent output (may fail if items uncomparable)
+        sorted_dups: list[object]
         try:
-            sorted_dups = sorted(duplicates)  # pyright: ignore[reportArgumentType]
+            sorted_dups = sorted(duplicates)  # pyright: ignore[reportArgumentType, reportUnknownVariableType]
         except TypeError:
             sorted_dups = list(duplicates)
         dup_str = ", ".join(repr(d) for d in sorted_dups)

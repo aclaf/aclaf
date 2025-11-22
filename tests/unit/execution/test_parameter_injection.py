@@ -59,6 +59,7 @@ class TestContextParameterInjection:
 
         parse_result = ParseResult(command="test", options={}, positionals={})
         ctx = Context(command="test", command_path=("test",), parse_result=parse_result)
+        assert not ctx.errors  # Ensure no validation errors
 
         cmd.dispatch(ctx)
 
@@ -112,6 +113,7 @@ class TestConsoleParameterInjection:
 
         parse_result = ParseResult(command="test", options={}, positionals={})
         ctx = Context(command="test", command_path=("test",), parse_result=parse_result)
+        assert not ctx.errors  # Ensure no validation errors
 
         cmd.dispatch(ctx)
 
@@ -165,6 +167,7 @@ class TestLoggerParameterInjection:
 
         parse_result = ParseResult(command="test", options={}, positionals={})
         ctx = Context(command="test", command_path=("test",), parse_result=parse_result)
+        assert not ctx.errors  # Ensure no validation errors
 
         cmd.dispatch(ctx)
 
@@ -236,6 +239,7 @@ class TestMultipleSpecialParametersInjection:
             parse_result=parse_result,
             console=test_console,
         )
+        assert not ctx.errors  # Ensure no validation errors
 
         cmd.dispatch(ctx)
 
@@ -293,6 +297,7 @@ class TestSpecialParamsMixedWithConvertedParams:
             parameters=parameters,
             errors=errors,
         )
+        assert not ctx.errors  # Ensure no validation errors
 
         cmd.dispatch(ctx)
 
@@ -331,6 +336,7 @@ class TestSpecialParamsMixedWithConvertedParams:
             positionals={},
         )
         ctx = Context(command="test", command_path=("test",), parse_result=parse_result)
+        assert not ctx.errors  # Ensure no validation errors
 
         cmd.dispatch(ctx)
 
@@ -383,6 +389,7 @@ class TestSpecialParamsWithSubcommands:
             console=test_console,
             logger=test_logger,
         )
+        assert not ctx.errors  # Ensure no validation errors
 
         parent.dispatch(ctx)
 

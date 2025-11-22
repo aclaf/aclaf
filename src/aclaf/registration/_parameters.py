@@ -94,8 +94,9 @@ def _extract_union_metadata(type_expr: Any) -> list[MetadataType]:  # pyright: i
     # get_origin() returns types.UnionType for X | Y
     if origin is UnionType:
         # Iterate through union type arguments
-        for type_arg in get_args(type_expr):
-            arg_origin = get_origin(type_arg)  # pyright: ignore[reportAny]
+        type_arg: object
+        for type_arg in get_args(type_expr):  # pyright: ignore[reportAny]
+            arg_origin = get_origin(type_arg)
             # If the union member is an Annotated type, extract its metadata
             if arg_origin is Annotated:
                 args = get_args(type_arg)

@@ -375,7 +375,7 @@ class TestConversionErrors:
         runtime_option_factory: "Callable[..., RuntimeParameter]",
         converters: ConverterRegistry,
     ):
-        def failing_converter(value: str, metadata: object) -> int:
+        def failing_converter(value: str, _metadata: object) -> int:
             raise ConversionError(value, int, "Custom error message")
 
         param = runtime_option_factory(

@@ -19,9 +19,11 @@ class ParserConfigurationInput(TypedDict, total=False):
 
     allow_abbreviated_subcommands: bool
     allow_abbreviated_options: bool
-    allow_equals_for_flags: bool
-    allow_aliases: bool
-    allow_negative_numbers: bool
+    allow_equals_for_flags: bool = False
+    allow_aliases: bool = True
+    allow_negative_numbers: bool = True
+    allow_duplicate_list_indices: bool = False
+    allow_sparse_lists: bool = False
     case_insensitive_flags: bool
     case_insensitive_options: bool
     case_insensitive_subcommands: bool

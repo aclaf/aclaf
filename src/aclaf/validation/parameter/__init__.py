@@ -8,6 +8,7 @@ from annotated_types import (
     MinLen,
     MultipleOf,
     Predicate,
+    Timezone,
 )
 
 from aclaf.validation._registry import ValidatorRegistry
@@ -270,10 +271,7 @@ def _create_default_parameter_validators() -> ValidatorRegistry:
     registry.register(Precision, validate_precision)
 
     # Datetime validators
-    # Timezone validator disabled - placeholder with no implementation
-    # TODO(@maintainer): Implement using zoneinfo.available_timezones()
-    # or remove entirely
-    # registry.register(Timezone, validate_timezone)  # from annotated-types
+    registry.register(Timezone, validate_timezone)
     registry.register(AfterDate, validate_after_date)
     registry.register(BeforeDate, validate_before_date)
     registry.register(DateRange, validate_date_range)

@@ -14,10 +14,11 @@ This module provides validators for datetime, date, and timedelta values:
 """
 
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, tzinfo
 from typing import TYPE_CHECKING, cast
+from zoneinfo import available_timezones
 
-from annotated_types import BaseMetadata
+from annotated_types import BaseMetadata, Timezone
 
 if TYPE_CHECKING:
     from aclaf.types import ParameterValueMappingType, ParameterValueType
@@ -95,16 +96,47 @@ class TimedeltaRange(BaseMetadata):
 
 
 def validate_timezone(
-    _value: "ParameterValueType | ParameterValueMappingType | None",
-    _metadata: "ValidatorMetadataType",
+    value: "ParameterValueType | ParameterValueMappingType | None",
+    metadata: "ValidatorMetadataType",
 ) -> tuple[str, ...] | None:
-    """Placeholder for timezone validation.
+    """Validate timezone constraint.
 
-    TODO: Implement using zoneinfo.available_timezones() or remove from registry.
-    This validator is currently registered but does no validation.
+    Validates that a value is a valid timezone. Accepts:
+    - str: IANA timezone name (e.g., 'America/New_York', 'UTC')
+    - tzinfo: Any timezone info object
+    - None: Passes validation if metadata.tz allows None
+
+    Args:
+        value: The value to validate (str, tzinfo, or None)
+        metadata: Timezone metadata from annotated-types
+
+    Returns:
+        Tuple of error messages if validation fails, None if validation passes
     """
-    # Placeholder - always returns None (no validation)
-    return None
+    tz_meta = cast("Timezone", metadata)
+
+    # None values - check if allowed by metadata
+    if value is None:
+        if tz_meta.tz is None or tz_meta.tz is ...:
+            return None
+        return ("timezone is required but value is None.",)
+
+    # tzinfo objects are always valid
+    if isinstance(value, tzinfo):
+        return None
+
+    # String timezone names - validate against available_timezones()
+    if isinstance(value, str):
+        # Get the set of valid timezone names
+        valid_timezones = available_timezones()
+
+        if value not in valid_timezones:
+            return (f"'{value}' is not a valid IANA timezone name.",)
+
+        return None
+
+    # Invalid type
+    return ("must be a timezone string (IANA name) or tzinfo object.",)
 
 
 def validate_after_date(

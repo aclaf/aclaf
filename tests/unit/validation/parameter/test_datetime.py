@@ -1,6 +1,9 @@
 """Unit tests for datetime parameter validators."""
 
 from datetime import UTC, date, datetime, timedelta
+from zoneinfo import ZoneInfo
+
+from annotated_types import Timezone
 
 from aclaf.validation.parameter import (
     AfterDate,
@@ -21,6 +24,7 @@ from aclaf.validation.parameter import (
     validate_max_timedelta,
     validate_min_timedelta,
     validate_timedelta_range,
+    validate_timezone,
 )
 
 
@@ -659,3 +663,158 @@ class TestTimedeltaRange:
         assert result is not None
         assert len(result) == 1
         assert "must be a timedelta" in result[0]
+
+
+class TestTimezone:
+    def test_validates_utc_timezone_string(self):
+        metadata = Timezone("UTC")
+        value = "UTC"
+
+        result = validate_timezone(value, metadata)
+
+        assert result is None
+
+    def test_validates_common_timezone_string(self):
+        metadata = Timezone("America/New_York")
+        value = "America/New_York"
+
+        result = validate_timezone(value, metadata)
+
+        assert result is None
+
+    def test_validates_different_timezone_string(self):
+        metadata = Timezone("UTC")
+        value = "Europe/London"
+
+        result = validate_timezone(value, metadata)
+
+        assert result is None
+
+    def test_rejects_invalid_timezone_string(self):
+        metadata = Timezone("UTC")
+        value = "Invalid/Timezone"
+
+        result = validate_timezone(value, metadata)
+
+        assert result is not None
+        assert len(result) == 1
+        assert "not a valid IANA timezone name" in result[0]
+        assert "Invalid/Timezone" in result[0]
+
+    def test_rejects_empty_timezone_string(self):
+        metadata = Timezone("UTC")
+        value = ""
+
+        result = validate_timezone(value, metadata)
+
+        assert result is not None
+        assert "not a valid IANA timezone name" in result[0]
+
+    def test_validates_tzinfo_object(self):
+        metadata = Timezone("UTC")
+        value = UTC
+
+        result = validate_timezone(value, metadata)
+
+        assert result is None
+
+    def test_validates_zoneinfo_object(self):
+        metadata = Timezone("UTC")
+        value = ZoneInfo("America/New_York")
+
+        result = validate_timezone(value, metadata)
+
+        assert result is None
+
+    def test_validates_none_when_metadata_allows_none(self):
+        metadata = Timezone(None)
+        value = None
+
+        result = validate_timezone(value, metadata)
+
+        assert result is None
+
+    def test_validates_none_when_metadata_allows_ellipsis(self):
+        metadata = Timezone(...)
+        value = None
+
+        result = validate_timezone(value, metadata)
+
+        assert result is None
+
+    def test_rejects_none_when_metadata_requires_timezone(self):
+        metadata = Timezone("UTC")
+        value = None
+
+        result = validate_timezone(value, metadata)
+
+        assert result is not None
+        assert len(result) == 1
+        assert "timezone is required but value is None" in result[0]
+
+    def test_rejects_integer_value(self):
+        metadata = Timezone("UTC")
+        value = 123
+
+        result = validate_timezone(value, metadata)
+
+        assert result is not None
+        assert len(result) == 1
+        assert "must be a timezone string" in result[0]
+        assert "tzinfo object" in result[0]
+
+    def test_rejects_dict_value(self):
+        metadata = Timezone("UTC")
+        value = {"tz": "UTC"}
+
+        result = validate_timezone(value, metadata)
+
+        assert result is not None
+        assert "must be a timezone string" in result[0]
+
+    def test_validates_various_valid_timezones(self):
+        metadata = Timezone("UTC")
+        valid_timezones = [
+            "UTC",
+            "America/New_York",
+            "Europe/London",
+            "Asia/Tokyo",
+            "Australia/Sydney",
+            "Africa/Cairo",
+            "Pacific/Auckland",
+            "America/Los_Angeles",
+            "Europe/Paris",
+            "Asia/Shanghai",
+        ]
+
+        for tz_name in valid_timezones:
+            result = validate_timezone(tz_name, metadata)
+            assert result is None, f"Expected {tz_name} to be valid"
+
+    def test_rejects_various_invalid_timezones(self):
+        metadata = Timezone("UTC")
+        invalid_timezones = [
+            "PST",  # Not in IANA database
+            "GMT+5",  # Offset notation not IANA
+            "Not/A/Real/Timezone",
+            "America/NotACity",
+            "1234",
+            "utc",  # Wrong case - IANA names are case-sensitive
+        ]
+
+        for tz_name in invalid_timezones:
+            result = validate_timezone(tz_name, metadata)
+            assert result is not None, f"Expected {tz_name} to be invalid"
+            assert "not a valid IANA timezone name" in result[0]
+
+    def test_validates_deprecated_but_valid_timezones(self):
+        metadata = Timezone("UTC")
+        # Some deprecated but still valid IANA timezone names
+        deprecated_timezones = [
+            "US/Eastern",
+            "US/Pacific",
+        ]
+
+        for tz_name in deprecated_timezones:
+            result = validate_timezone(tz_name, metadata)
+            assert result is None, f"Expected {tz_name} to be valid"

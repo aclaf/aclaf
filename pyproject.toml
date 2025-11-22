@@ -7,7 +7,7 @@ name = "aclaf"
 version = "0.1.0"
 authors = [{ name = "Tony Burns", email = "tony@tonyburns.net" }]
 description = "A command line application framework."
-readme = "README.md"
+readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.10"
 classifiers = [
   "Development Status :: 3 - Alpha",
@@ -68,6 +68,7 @@ dev = [
 
 [tool.basedpyright]
 include = ["src", "tests"]
+typeCheckingMode = "strict"
 
 [tool.codespell]
 skip = "pnpm-lock.yaml,uv.lock,htmlcov,site,tmp"
@@ -377,6 +378,7 @@ ignore-variadic-names = true
 
 [tool.ruff.lint.per-file-ignores]
 "**/__main__.py" = ["D100"]
+"**/examples/**" = ["T201"] # Allow print statements in example code
 "**/tests/**" = [
   "ARG001",
   "D",
@@ -384,8 +386,6 @@ ignore-variadic-names = true
   "S101",
   "TC003",
 ] # TC003: Path is used at runtime in fixtures
-"examples/**" = ["T201"] # Allow print in examples
-"scripts/**" = ["T201"] # Allow print in scripts
 "src/aclaf/validation/**" = [
   "ARG001",
 ] # Validators must match Protocol signature even if params unused

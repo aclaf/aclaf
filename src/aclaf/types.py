@@ -1,6 +1,6 @@
 from collections.abc import Mapping, Sequence, Set as AbstractSet
 from dataclasses import dataclass
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, time, timedelta, tzinfo
 from enum import IntEnum, auto
 from pathlib import Path
 from typing import Annotated, Protocol, TypeAlias, runtime_checkable
@@ -111,6 +111,7 @@ ParameterValueType: TypeAlias = (
     | datetime
     | time
     | timedelta
+    | tzinfo
     | Sequence[PrimitiveType | Sequence[PrimitiveType]]
     | AbstractSet[PrimitiveType]
     | Mapping[str | int, PrimitiveType | Sequence[PrimitiveType]]

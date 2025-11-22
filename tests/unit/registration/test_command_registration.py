@@ -1,6 +1,7 @@
 import pytest
 
 from aclaf import EMPTY_COMMAND_FUNCTION, Command, RuntimeCommand
+from aclaf.execution import is_async_command_function
 
 
 class TestCommandCreation:
@@ -89,7 +90,7 @@ class TestCommandAsyncDetection:
         assert cmd.is_async is False  # Defaults to False when no run_func
 
         cmd.run_func = handler
-        cmd.is_async = cmd._check_run_func_async()  # noqa: SLF001
+        cmd.is_async = is_async_command_function(handler)
         assert cmd.is_async is True
 
 

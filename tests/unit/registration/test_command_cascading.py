@@ -579,7 +579,7 @@ class TestMergeSemantics:
         parent.mount(child)
 
         # Verify child's converter is preserved (not overwritten by parent's)
-        result = child.converters.convert("5", CascadeInt)
+        result: object = child.converters.convert("5", CascadeInt)  # pyright: ignore[reportAny]
         assert isinstance(result, CascadeInt)
         assert result.value == 50  # child multiplies by 10, not parent's 2
 

@@ -102,6 +102,7 @@ class TestBundledSyntax:
             if file:
                 console.print(f"[tar] file={file}")
 
+        del tar  # Function registered via decorator
         app(["tar", "-tvf", "archive.tar"])
 
         output = console.get_output()
@@ -249,6 +250,7 @@ class TestCompressionOptions:
             if directory:
                 console.print(f"[tar] directory={directory}")
 
+        del tar  # Function registered via decorator
         app(["tar", "-xvf", "archive.tar", "-C", "/destination/"])
 
         output = console.get_output()

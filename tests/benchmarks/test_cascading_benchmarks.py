@@ -1,4 +1,4 @@
-# pyright: reportUnknownParameterType=false, reportMissingParameterType=false, reportUnknownArgumentType=false, reportUnusedParameter=false
+# pyright: reportUnknownParameterType=false, reportMissingParameterType=false, reportUnknownArgumentType=false, reportUnusedParameter=false, reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnusedFunction=false
 
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
@@ -12,6 +12,8 @@ from aclaf.registration import Command
 from aclaf.validation import ValidatorMetadataType, ValidatorRegistry
 
 if TYPE_CHECKING:
+    from pytest_benchmark.fixture import BenchmarkFixture
+
     from aclaf.types import (
         ParameterValueMappingType,
         ParameterValueType,
@@ -20,7 +22,7 @@ if TYPE_CHECKING:
 
 
 class TestCascadingPerformance:
-    def test_cascade_baseline_single_command(self, benchmark):
+    def test_cascade_baseline_single_command(self, benchmark: "BenchmarkFixture"):
         """Baseline: cascading to a command with no subcommands."""
 
         def setup():
@@ -33,7 +35,7 @@ class TestCascadingPerformance:
 
         benchmark.pedantic(mount_command, setup=setup, rounds=1000)
 
-    def test_cascade_one_level_deep(self, benchmark):
+    def test_cascade_one_level_deep(self, benchmark: "BenchmarkFixture"):
         """Cascade to a command with 1 level of subcommands."""
 
         def setup():
@@ -48,7 +50,7 @@ class TestCascadingPerformance:
 
         benchmark.pedantic(mount_command, setup=setup, rounds=1000)
 
-    def test_cascade_five_levels_deep(self, benchmark):
+    def test_cascade_five_levels_deep(self, benchmark: "BenchmarkFixture"):
         """Cascade to a command with 5 levels of subcommands."""
 
         def setup():
@@ -71,7 +73,7 @@ class TestCascadingPerformance:
 
         benchmark.pedantic(mount_command, setup=setup, rounds=1000)
 
-    def test_cascade_ten_levels_deep(self, benchmark):
+    def test_cascade_ten_levels_deep(self, benchmark: "BenchmarkFixture"):
         """Cascade to a command with 10 levels of subcommands."""
 
         def setup():
@@ -91,7 +93,7 @@ class TestCascadingPerformance:
 
         benchmark.pedantic(mount_command, setup=setup, rounds=1000)
 
-    def test_cascade_wide_tree_10_children(self, benchmark):
+    def test_cascade_wide_tree_10_children(self, benchmark: "BenchmarkFixture"):
         """Cascade to a command with 10 direct subcommands."""
 
         def setup():
@@ -109,7 +111,7 @@ class TestCascadingPerformance:
 
         benchmark.pedantic(mount_command, setup=setup, rounds=1000)
 
-    def test_cascade_balanced_tree_3x3x3(self, benchmark):
+    def test_cascade_balanced_tree_3x3x3(self, benchmark: "BenchmarkFixture"):
         """Cascade to a balanced tree (3 levels, 3 children per level)."""
 
         def setup():
@@ -142,7 +144,7 @@ class TestCascadingPerformance:
 
         benchmark.pedantic(mount_command, setup=setup, rounds=100)
 
-    def test_cascade_with_all_config_populated(self, benchmark):
+    def test_cascade_with_all_config_populated(self, benchmark: "BenchmarkFixture"):
         """Cascade with all configuration options populated."""
 
         @dataclass(slots=True, frozen=True)

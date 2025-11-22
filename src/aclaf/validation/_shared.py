@@ -8,15 +8,38 @@ if TYPE_CHECKING:
 
 
 def validate_predicate(
-    _value: "ParameterValueType | ParameterValueMappingType | None",
+    value: "ParameterValueType | ParameterValueMappingType | None",
     metadata: "ValidatorMetadataType",
 ) -> tuple[str, ...] | None:
-    """Placeholder for Predicate validator.
+    """Validate value against a predicate function.
 
-    TODO: Implement predicate validation or remove from registry.
+    The predicate function is called with the value and must return True
+    for the validation to pass. If the predicate returns False or raises
+    an exception, validation fails.
+
+    Args:
+        value: The value to validate
+        metadata: Predicate metadata containing the validation function
+
+    Returns:
+        Tuple of error messages if validation fails, None if validation passes
     """
-    metadata = cast("Predicate", metadata)
-    errors: list[str] = []
-    if errors:
-        return tuple(errors)
+    predicate_meta = cast("Predicate", metadata)
+
+    # None values pass through without validation
+    if value is None:
+        return None
+
+    # Call the predicate function with the value
+    try:
+        result = predicate_meta.func(value)
+    except Exception as e:  # noqa: BLE001
+        # User-provided predicates can raise any exception type (AttributeError,
+        # TypeError, ValueError, etc.) - broad exception handling is necessary
+        return (f"predicate validation failed: {e!s}",)
+
+    # Check if predicate returned True
+    if not result:
+        return ("does not satisfy the required predicate condition.",)
+
     return None

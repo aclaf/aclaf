@@ -224,7 +224,7 @@ class TestAtLeastOneOf:
 
     def test_rejects_non_mapping_value(self):
         metadata = AtLeastOneOf(parameter_names=("a", "b"))
-        value = []
+        value: list[str] = []
 
         result = validate_at_least_one_of(value, metadata)
 

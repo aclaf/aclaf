@@ -207,7 +207,9 @@ class TestKubectlDeleteCommand:
         app = App("kubectl", console=console)
 
         @app.command()
-        def delete(            resource_type: str, resource_names: Annotated[tuple[str, ...], AtLeastOne()]
+        def delete(
+            resource_type: str,
+            resource_names: Annotated[tuple[str, ...], AtLeastOne()],
         ):
             console.print(f"[delete] resource_type={resource_type}")
             console.print(f"[delete] resource_names={resource_names!r}")
@@ -223,7 +225,9 @@ class TestKubectlDeleteCommand:
         app = App("kubectl", console=console)
 
         @app.command()
-        def delete(            resource_type: str, resource_names: Annotated[tuple[str, ...], AtLeastOne()]
+        def delete(
+            resource_type: str,
+            resource_names: Annotated[tuple[str, ...], AtLeastOne()],
         ):
             console.print(f"[delete] resource_type={resource_type}")
             console.print(f"[delete] resource_names={resource_names!r}")
@@ -238,7 +242,9 @@ class TestKubectlDeleteCommand:
         app = App("kubectl", console=console)
 
         @app.command()
-        def delete(            resource_type: str, resource_names: Annotated[tuple[str, ...], AtLeastOne()]
+        def delete(
+            resource_type: str,
+            resource_names: Annotated[tuple[str, ...], AtLeastOne()],
         ):
             console.print(f"[delete] resource_type={resource_type}")
             console.print(f"[delete] resource_names={resource_names!r}")
@@ -794,7 +800,9 @@ class TestComplexKubectlScenarios:
             console.print(f"[describe] resource_name={resource_name}")
 
         @app.command()
-        def delete(            resource_type: str, resource_names: Annotated[tuple[str, ...], AtLeastOne()]
+        def delete(
+            resource_type: str,
+            resource_names: Annotated[tuple[str, ...], AtLeastOne()],
         ):
             console.print(f"[delete] resource_type={resource_type}")
             console.print(f"[delete] resource_names={resource_names!r}")

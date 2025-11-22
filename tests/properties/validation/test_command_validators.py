@@ -51,13 +51,13 @@ def parameter_mapping_strategy(
     param_names: tuple[str, ...] | None = None,
     *,
     include_extra: bool = True,
-):
+) -> dict[str, None | bool | int | float | str]:
     """Generate a parameter mapping with optional extra parameters."""
     if param_names is None:
         param_names = draw(parameter_names_strategy(min_size=1, max_size=5))
 
     # Generate values for specified parameters (mix of provided and None)
-    mapping = {}
+    mapping: dict[str, None | bool | int | float | str] = {}
     for name in param_names:
         mapping[name] = draw(
             st.one_of(
@@ -150,7 +150,9 @@ def test_mutually_exclusive_fails_iff_multiple_provided(
     metadata = MutuallyExclusive(parameter_names=param_names)
 
     # Generate mapping
-    value = data.draw(parameter_mapping_strategy(param_names=tuple(param_names)))
+    value: dict[str, None | bool | int | float | str] = data.draw(
+        parameter_mapping_strategy(param_names=tuple(param_names))
+    )
 
     # Count provided parameters (non-None)
     provided_count = sum(1 for name in param_names if value.get(name) is not None)
@@ -175,7 +177,9 @@ def test_exactly_one_of_passes_iff_exactly_one_provided(
     metadata = ExactlyOneOf(parameter_names=param_names)
 
     # Generate mapping
-    value = data.draw(parameter_mapping_strategy(param_names=tuple(param_names)))
+    value: dict[str, None | bool | int | float | str] = data.draw(
+        parameter_mapping_strategy(param_names=tuple(param_names))
+    )
 
     # Count provided parameters (non-None)
     provided_count = sum(1 for name in param_names if value.get(name) is not None)
@@ -200,7 +204,9 @@ def test_at_least_one_of_passes_iff_one_or_more_provided(
     metadata = AtLeastOneOf(parameter_names=param_names)
 
     # Generate mapping
-    value = data.draw(parameter_mapping_strategy(param_names=tuple(param_names)))
+    value: dict[str, None | bool | int | float | str] = data.draw(
+        parameter_mapping_strategy(param_names=tuple(param_names))
+    )
 
     # Count provided parameters (non-None)
     provided_count = sum(1 for name in param_names if value.get(name) is not None)
@@ -225,7 +231,9 @@ def test_at_most_one_of_passes_iff_zero_or_one_provided(
     metadata = AtMostOneOf(parameter_names=param_names)
 
     # Generate mapping
-    value = data.draw(parameter_mapping_strategy(param_names=tuple(param_names)))
+    value: dict[str, None | bool | int | float | str] = data.draw(
+        parameter_mapping_strategy(param_names=tuple(param_names))
+    )
 
     # Count provided parameters (non-None)
     provided_count = sum(1 for name in param_names if value.get(name) is not None)
@@ -253,7 +261,7 @@ def test_mutually_exclusive_ignores_extra_parameters(
     metadata = MutuallyExclusive(parameter_names=param_names)
 
     # Generate base mapping
-    value = data.draw(
+    value: dict[str, None | bool | int | float | str] = data.draw(
         parameter_mapping_strategy(param_names=tuple(param_names), include_extra=False)
     )
 
@@ -412,7 +420,9 @@ def test_conflicts_with_equivalent_to_mutually_exclusive(
     mutually_exclusive_meta = MutuallyExclusive(parameter_names=param_names)
 
     # Generate mapping
-    value = data.draw(parameter_mapping_strategy(param_names=tuple(param_names)))
+    value: dict[str, None | bool | int | float | str] = data.draw(
+        parameter_mapping_strategy(param_names=tuple(param_names))
+    )
 
     conflicts_result = validate_conflicts_with(value, conflicts_meta)
     mutually_exclusive_result = validate_mutually_exclusive(
@@ -434,7 +444,7 @@ def test_mutually_exclusive_with_empty_params_always_passes():
     metadata = MutuallyExclusive(parameter_names=())
 
     @given(mapping=st.dictionaries(st.text(min_size=1), st.booleans()))
-    def check(mapping):
+    def check(mapping: dict[str, bool]):
         result = validate_mutually_exclusive(mapping, metadata)
         assert result is None
 
@@ -446,7 +456,7 @@ def test_exactly_one_of_with_empty_params_always_fails():
     metadata = ExactlyOneOf(parameter_names=())
 
     @given(mapping=st.dictionaries(st.text(min_size=1), st.booleans()))
-    def check(mapping):
+    def check(mapping: dict[str, bool]):
         result = validate_exactly_one_of(mapping, metadata)
         assert result is not None
 

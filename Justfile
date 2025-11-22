@@ -68,10 +68,10 @@ lint-imports: install
 
 # Lint documentation
 lint-docs: install
-  yamllint --strict mkdocs.yml
-  pnpm exec markdownlint-cli2 "**/*.md"
+  uv run yamllint --strict mkdocs.yml
   uv run --frozen djlint docs/.overrides
   pnpm exec biome check docs/
+  pnpm exec markdownlint-cli2 "**/*.md"
 
 # Lint GitHub Actions workflows
 lint-actions: install
